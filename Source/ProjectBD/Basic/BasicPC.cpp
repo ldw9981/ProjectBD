@@ -1,5 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 #include "BasicPC.h"
 #include "Basic/BasicPlayerCameraManager.h"
 #include "UI/Items/ItemToolTipBase.h"
@@ -27,16 +26,16 @@ void ABasicPC::BeginPlay()
 
 	if (IsLocalPlayerController())
 	{
-		//UI »ı¼º(UMG ºí·çÇÁ¸°Æ® Å¬·¡½º¸¦ ·Îµù, »ı¼º)
+		//UI ìƒì„±(UMG ë¸”ë£¨í”„ë¦°íŠ¸ í´ë˜ìŠ¤ë¥¼ ë¡œë”©, ìƒì„±)
 		FStringClassReference ItemToolTipClass(TEXT("WidgetBlueprint'/Game/Blueprints/UI/ItemToolTip.ItemToolTip_C'"));
 
-		//Å¬·¡½º ·Îµù ½Ãµµ
+		//í´ë˜ìŠ¤ ë¡œë”© ì‹œë„
 		UClass* WidgetClass = ItemToolTipClass.TryLoadClass<UItemToolTipBase>();
-		if (WidgetClass) //Å¬·¡½º ·Îµù ¼º°ø
+		if (WidgetClass) //í´ë˜ìŠ¤ ë¡œë”© ì„±ê³µ
 		{
-			//Å¬·¡½º¸¦ ÀÎ½ºÅÏ½º ¸¸µé±â
+			//í´ë˜ìŠ¤ë¥¼ ì¸ìŠ¤í„´ìŠ¤ ë§Œë“¤ê¸°
 			ItemToolTip = Cast<UItemToolTipBase>(CreateWidget<UUserWidget>(this, WidgetClass));
-			//È­¸é¿¡ ºÙÀÌ±â
+			//í™”ë©´ì— ë¶™ì´ê¸°
 			if (ItemToolTip)
 			{
 				ItemToolTip->AddToViewport();
@@ -137,18 +136,22 @@ void ABasicPC::ToggleInventory()
 	}
 }
 
-//Data(GI->Inventory) - UI(Widget, InventoryBase, ItemSlotBase) ¿¬°á
+//Data(GI->Inventory) - UI(Widget, InventoryBase, ItemSlotBase) ì—°ê²°
 void ABasicPC::UpdateInventory()
 {
-	InventoryWidget->AllResetSlot();
-
-//	GetOwner();
-	APawn* Pawn = GetPawn();
-	if(!Pawn)
+	if (!IsLocalPlayerController())
 	{
 		return;
 	}
-	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>( Pawn->GetComponentByClass(UInventoryComponent::StaticClass()));
+
+	InventoryWidget->AllResetSlot();
+//	GetOwner();
+	AActor* Actor = GetPawn();
+	if(!Actor)
+	{
+		return;
+	}
+	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(Actor->GetComponentByClass(UInventoryComponent::StaticClass()));
 	if (!InventoryComponent)
 	{
 		return;
@@ -167,7 +170,7 @@ void ABasicPC::UpdateInventory()
 		}
 		else
 		{
-			//ÀÎº¥Åä¸® Ç®
+			//ì¸ë²¤í† ë¦¬ í’€
 		}
 	}
 	/*
@@ -183,7 +186,7 @@ void ABasicPC::UpdateInventory()
 			}
 			else
 			{
-				//ÀÎº¥Åä¸® Ç®
+				//ì¸ë²¤í† ë¦¬ í’€
 			}
 		}
 	}
