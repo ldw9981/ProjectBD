@@ -7,6 +7,9 @@
 #include "Items/ItemDataTable.h"
 #include "MasterItem.generated.h"
 
+class UStaticMeshComponent;
+class USphereComponent;
+
 UCLASS()
 class PROJECTBD_API AMasterItem : public AActor
 {
@@ -39,7 +42,7 @@ public:
 	int ItemIndex = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int ItemCount = 1;
-
+	int ItemSpawnID = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FItemDataTable ItemData;
 
@@ -49,5 +52,5 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* Mesh;
 
-	void SetItem(int NewItemIndex, int NewItemCount);
+	void SetItem(int NewSpawnID, int NewItemIndex, int NewItemCount);
 };

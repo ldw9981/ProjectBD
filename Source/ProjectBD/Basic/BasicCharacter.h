@@ -160,6 +160,7 @@ public:
 
 	bool IsDead();
 
+	class ARandomItemSpawner*  RandomItemSpawner=nullptr;
 	TArray<class AMasterItem*> InteractionItemList;
 
 	void AddInteraction(class AMasterItem* NewItem);
@@ -246,4 +247,12 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_ReloadComplete();
 	void S2A_ReloadComplete_Implementation();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_DestroyMasterItem(int SpawnID);
+	void S2A_DestroyMasterItem_Implementation(int SpawnID);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_CreateMasterItem(int ItemIndex,int ItemCount);
+	void S2A_CreateMasterItem_Implementation(int ItemIndex, int ItemCount);
 };

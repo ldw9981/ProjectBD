@@ -24,11 +24,13 @@
 #include "UnrealNetwork.h"
 #include "Battle/BattleGM.h"
 #include "InventoryComponent.h"
+#include "Items/RandomItemSpawner.h"
+
 
 // Sets default values
 ABasicCharacter::ABasicCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight()));
@@ -179,7 +181,7 @@ void ABasicCharacter::MoveForward(float Value)
 			C2S_SetSprint(false);
 		}
 		AddMovementInput(UKismetMathLibrary::GetForwardVector(FRotator(0, GetControlRotation().Yaw, 0)), Value);
-//		AddMovementInput(GetActorForwardVector(), Value);
+		//		AddMovementInput(GetActorForwardVector(), Value);
 	}
 }
 
@@ -193,7 +195,7 @@ void ABasicCharacter::MoveRight(float Value)
 			C2S_SetSprint(false);
 		}
 		AddMovementInput(UKismetMathLibrary::GetRightVector(FRotator(0, GetControlRotation().Yaw, 0)), Value);
-//		AddMovementInput(GetActorRightVector(), Value);
+		//		AddMovementInput(GetActorRightVector(), Value);
 	}
 }
 
@@ -260,7 +262,7 @@ void ABasicCharacter::IsFire_OnRep()
 }
 
 void ABasicCharacter::StartFire()
-{	
+{
 	ABasicPC* BasicPC = Cast<ABasicPC>(GetController());
 	if (!BasicPC || BasicPC->IsShowInventory())
 	{
@@ -268,7 +270,7 @@ void ABasicCharacter::StartFire()
 	}
 	if (!bIsReload)
 	{
-		C2S_SetFire(true);		
+		C2S_SetFire(true);
 		IsFire_OnRep();	// 서버를 위해 바로검사
 	}
 }
@@ -280,7 +282,7 @@ void ABasicCharacter::StopFire()
 
 // 총을쏜 플레이어의 컴에서만 호출
 void ABasicCharacter::Client_OnTimerFire()
-{	
+{
 	if (!bIsFire)
 	{
 		return;
@@ -292,7 +294,7 @@ void ABasicCharacter::Client_OnTimerFire()
 		return;
 	}
 
-	UE_LOG(LogClass, Warning, TEXT("Bullet %d %d"), Weapon->BulletCountinMagazine, Weapon->TotalBulletCount);	
+	UE_LOG(LogClass, Warning, TEXT("Bullet %d %d"), Weapon->BulletCountinMagazine, Weapon->TotalBulletCount);
 
 	//총알 발사 계산
 	//UE_LOG(LogClass, Warning, TEXT("OnFire"));
@@ -538,7 +540,7 @@ FVector ABasicCharacter::GetSightLocation()
 	IgnoreActors.Add(this);
 
 	FHitResult OutHit;
-	bool bResult =  UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(),
+	bool bResult = UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(),
 		TraceStart,
 		TraceEnd,
 		ObjectTypes,
@@ -562,7 +564,7 @@ FVector ABasicCharacter::GetSightLocation()
 void ABasicCharacter::Interaction()
 {
 	FVector Location = GetSightLocation();
-	
+
 	C2S_Interaction(Location);
 }
 
@@ -603,12 +605,10 @@ void ABasicCharacter::ToggleInventory()
 
 bool ABasicCharacter::PickupItem(AMasterItem* MasterItem)
 {
-	if (Inventory->AddItem(MasterItem->ItemIndex,MasterItem->ItemCount))
+	if (Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount))
 	{
 		RemoveInteraction(MasterItem);
-		MasterItem->Destroy();
-
-
+		S2A_DestroyMasterItem(MasterItem->ItemSpawnID);
 		ABasicPC* PC = Cast<ABasicPC>(GetController());
 		if (PC)
 		{
@@ -629,15 +629,12 @@ void ABasicCharacter::DropItem(int InventoryIndex)
 		return;
 	}
 
-	if(!Inventory->DropItem(InventoryIndex))
+	if (!Inventory->DropItem(InventoryIndex))
 	{
 		return;
 	}
-		
-	AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(AMasterItem::StaticClass(), 
-		GetMesh()->GetComponentLocation() + GetActorForwardVector() * 30.0f,
-		GetMesh()->GetComponentRotation());
-	Item->SetItem(ItemIndex, ItemCount);
+
+	S2A_CreateMasterItem(ItemIndex, ItemCount);
 
 	ABasicPC* PC = Cast<ABasicPC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (PC)
@@ -809,7 +806,7 @@ void ABasicCharacter::C2S_Fire_Implementation(FVector TraceStart, FVector TraceE
 		);
 
 		if (Result)
-		{			
+		{
 			if (OutHit.GetActor()->ActorHasTag(TEXT("Player")))
 			{
 				UE_LOG(LogClass, Warning, TEXT("Player."));
@@ -823,13 +820,13 @@ void ABasicCharacter::C2S_Fire_Implementation(FVector TraceStart, FVector TraceE
 					UBulletDamageType::StaticClass()
 				);
 
-				S2A_HitEffectBlood(OutHit.ImpactPoint,OutHit.ImpactNormal.Rotation());
+				S2A_HitEffectBlood(OutHit.ImpactPoint, OutHit.ImpactNormal.Rotation());
 			}
 			else
 			{
 				S2A_HitEffectBlock(OutHit.ImpactPoint, OutHit.ImpactNormal.Rotation());
 			}
-		
+
 		}
 	}
 }
@@ -837,7 +834,7 @@ void ABasicCharacter::C2S_Fire_Implementation(FVector TraceStart, FVector TraceE
 void ABasicCharacter::S2A_HitEffectBlood_Implementation(FVector Point, FRotator Rotation)
 {
 	//HitEffect
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodEffect,Point,Rotation	);
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodEffect, Point, Rotation);
 }
 
 void ABasicCharacter::S2A_HitEffectBlock_Implementation(FVector Point, FRotator Rotation)
@@ -852,7 +849,7 @@ void ABasicCharacter::S2A_HitEffectBlock_Implementation(FVector Point, FRotator 
 	BulletDecalComponent->SetFadeScreenSize(0.005f);
 
 	//HitEffect
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect,	Point,Rotation	);
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, Point, Rotation);
 }
 
 void ABasicCharacter::S2A_FireEffect_Implementation(FName InSocketName)
@@ -882,7 +879,37 @@ void ABasicCharacter::C2S_Reload_Implementation()
 void ABasicCharacter::S2A_ReloadComplete_Implementation()
 {
 	Weapon->ReloadComplete();
-	bIsReload = false;	
+	bIsReload = false;
+}
+
+void ABasicCharacter::S2A_DestroyMasterItem_Implementation(int SpawnID)
+{
+	if (RandomItemSpawner == nullptr)
+	{
+		TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
+		TArray<AActor*> Results;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
+		check(Results.Num()==1);
+		RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+	}
+
+	RandomItemSpawner->DestroyMasterItem(SpawnID);
+}
+
+void ABasicCharacter::S2A_CreateMasterItem_Implementation(int ItemIndex, int ItemCount)
+{
+	if (RandomItemSpawner == nullptr)
+	{
+		TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
+		TArray<AActor*> Results;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
+		check(Results.Num() == 1);
+		RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+	}
+
+	AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(ItemIndex, ItemCount);
+	MasterItem->SetActorLocationAndRotation(GetMesh()->GetComponentLocation() + GetActorForwardVector() * 30.0f,
+		GetMesh()->GetComponentRotation());
 }
 
 

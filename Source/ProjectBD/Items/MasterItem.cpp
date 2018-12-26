@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MasterItem.h"
 #include "Components/StaticMeshComponent.h"
@@ -10,6 +10,7 @@
 #include "UnrealNetwork.h"
 #include "BDGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/StaticMesh.h"
 
 // Sets default values
 AMasterItem::AMasterItem()
@@ -61,7 +62,7 @@ void AMasterItem::OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
 
 void AMasterItem::CompleteAsyncLoad()
 {
-	Mesh->SetStaticMesh(ItemData.ItemMesh.Get());
+	//Mesh->SetStaticMesh(ItemData.ItemMesh);
 }
 
 
@@ -73,10 +74,11 @@ void AMasterItem::ItemIndex_OnRep()
 	{
 		return;
 	}
+	
 	ItemData = GI->GetItemData(ItemIndex);
 	if (ItemData.ItemIndex != 0)
 	{
-		//¸Þ½Ã ·Îµù
+		//ë©”ì‹œ ë¡œë”©
 		FStreamableManager Loader;
 		Mesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemMesh));
 		//Loader.RequestAsyncLoad(ItemData.ItemMesh.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(this, &AMasterItem::CompleteAsyncLoad));
@@ -91,19 +93,20 @@ void AMasterItem::Tick(float DeltaTime)
 }
 
 
-void AMasterItem::SetItem(int NewItemIndex,int NewItemCount)
+void AMasterItem::SetItem(int NewSpawnID,int NewItemIndex,int NewItemCount)
 {	
 	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	if (!GI)
 	{
 		return;
 	}
-			
+		
+	ItemSpawnID = NewSpawnID;
 	ItemData = GI->GetItemData(NewItemIndex);
 	if (ItemData.ItemIndex != 0)
 	{
 		ItemIndex = NewItemIndex;
-		//¸Þ½Ã ·Îµù
+		//ë©”ì‹œ ë¡œë”©
 		FStreamableManager Loader;
 		Mesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemMesh));
 		//Loader.RequestAsyncLoad(ItemData.ItemMesh.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(this, &AMasterItem::CompleteAsyncLoad));

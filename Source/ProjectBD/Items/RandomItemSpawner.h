@@ -10,8 +10,8 @@ UCLASS()
 class PROJECTBD_API ARandomItemSpawner : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ARandomItemSpawner();
 
@@ -19,16 +19,24 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	int SpawnID = 0;
+
+	TMap<int,class AActor*> SpawnItems;
+
 	UPROPERTY(ReplicatedUsing = "Spwan_OnRep")
 	TArray<int> RandomItems;
 
 	USceneComponent* Scene;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 	UFUNCTION()
 	void Spwan_OnRep();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	class AMasterItem* SpawnMasterItem(int ItemIndex, int ItemCount);
+	bool DestroyMasterItem(int TargetSpawnID);
 };

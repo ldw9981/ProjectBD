@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "RandomItemSpawner.h"
+#include "Components/SceneComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Items/RandomItemPoint.h"
 #include "Engine/World.h"
@@ -12,7 +13,7 @@
 // Sets default values
 ARandomItemSpawner::ARandomItemSpawner()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	RootComponent = Scene;
@@ -23,7 +24,7 @@ ARandomItemSpawner::ARandomItemSpawner()
 void ARandomItemSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
 		TSubclassOf<ARandomItemPoint> RandomItemPointClassType = ARandomItemPoint::StaticClass();
@@ -62,15 +63,21 @@ void ARandomItemSpawner::Spwan_OnRep()
 	});
 
 	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	for (int Index = 0; Index< Results.Num();Index++)
+	for (int Index = 0; Index < Results.Num(); Index++)
 	{
 		FItemDataTable& ItemData = GI->GetItemData(RandomItems[Index]);
-		
+
 		TSubclassOf<AMasterItem> MasterItemClassType = AMasterItem::StaticClass();
 		FActorSpawnParameters SpawnParms;
 		AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
-		Item->SetActorTransform(Results[Index]->GetActorTransform());
-		Item->SetItem(RandomItems[Index], ItemData.ItemCount);
+		if (Item)
+		{
+			SpawnID++;
+			SpawnItems.Add(SpawnID, Item);
+
+			Item->SetActorTransform(Results[Index]->GetActorTransform());
+			Item->SetItem(SpawnID,RandomItems[Index], ItemData.ItemCount);
+		}
 	}
 }
 
@@ -79,5 +86,28 @@ void ARandomItemSpawner::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ARandomItemSpawner, RandomItems, COND_InitialOnly);	//COND_InitialOnly - This property will only attempt to send on the initial bunch
+}
+
+AMasterItem* ARandomItemSpawner::SpawnMasterItem(int ItemIndex, int ItemCount)
+{
+	TSubclassOf<AMasterItem> MasterItemClassType = AMasterItem::StaticClass();
+	FActorSpawnParameters SpawnParms;
+	AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
+	SpawnID++;
+	SpawnItems.Add(SpawnID, Item);
+
+	Item->SetItem(SpawnID,ItemIndex, ItemCount);
+	return Item;
+}
+
+bool ARandomItemSpawner::DestroyMasterItem(int TargetSpawnID)
+{
+	AMasterItem* Item = Cast<AMasterItem>(SpawnItems.FindAndRemoveChecked(TargetSpawnID));
+	if (Item)
+	{
+		Item->Destroy();
+		return true;
+	}
+	return false;
 }
 
