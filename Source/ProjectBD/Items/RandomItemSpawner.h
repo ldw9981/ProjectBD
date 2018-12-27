@@ -19,9 +19,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	int SpawnID = 0;
+	int UniqueSpawnID = 0;
 
-	TMap<int,class AActor*> SpawnItems;
+	TMap<int,class AMasterItem*> SpawnItems;
 
 	UPROPERTY(ReplicatedUsing = "Spwan_OnRep")
 	TArray<int> RandomItems;
@@ -39,4 +39,5 @@ public:
 
 	class AMasterItem* SpawnMasterItem(int ItemIndex, int ItemCount);
 	bool DestroyMasterItem(int TargetSpawnID);
+	AMasterItem* GetMasterItem(int SpawnID);
 };

@@ -72,13 +72,18 @@ void ARandomItemSpawner::Spwan_OnRep()
 		AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
 		if (Item)
 		{
-			SpawnID++;
-			SpawnItems.Add(SpawnID, Item);
+			UniqueSpawnID++;
+			SpawnItems.Add(UniqueSpawnID, Item);
 
 			Item->SetActorTransform(Results[Index]->GetActorTransform());
-			Item->SetItem(SpawnID,RandomItems[Index], ItemData.ItemCount);
+			Item->SetItem(UniqueSpawnID,RandomItems[Index], ItemData.ItemCount);
 		}
 	}
+}
+
+AMasterItem * ARandomItemSpawner::GetMasterItem(int SpawnID)
+{
+	return SpawnItems.FindRef(SpawnID);
 }
 
 void ARandomItemSpawner::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -93,10 +98,10 @@ AMasterItem* ARandomItemSpawner::SpawnMasterItem(int ItemIndex, int ItemCount)
 	TSubclassOf<AMasterItem> MasterItemClassType = AMasterItem::StaticClass();
 	FActorSpawnParameters SpawnParms;
 	AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
-	SpawnID++;
-	SpawnItems.Add(SpawnID, Item);
+	UniqueSpawnID++;
+	SpawnItems.Add(UniqueSpawnID, Item);
 
-	Item->SetItem(SpawnID,ItemIndex, ItemCount);
+	Item->SetItem(UniqueSpawnID,ItemIndex, ItemCount);
 	return Item;
 }
 

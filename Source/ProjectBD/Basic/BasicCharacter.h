@@ -163,8 +163,8 @@ public:
 	class ARandomItemSpawner*  RandomItemSpawner=nullptr;
 	TArray<class AMasterItem*> InteractionItemList;
 
-	void AddInteraction(class AMasterItem* NewItem);
-	void RemoveInteraction(class AMasterItem* NewItem);
+	void AddInteraction(int SpawnID);
+	void RemoveInteraction(int SpawnID);
 	int GetClosestItem(FVector SightLocation);
 	FVector GetSightLocation();
 
@@ -180,7 +180,7 @@ public:
 
 	void ToggleInventory();
 
-	bool PickupItem(AMasterItem* MasterItem);
+	bool PickupItem(int SpawnID);
 
 	void DropItem(int InventoryIndex);
 
@@ -255,4 +255,7 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_CreateMasterItem(int ItemIndex,int ItemCount);
 	void S2A_CreateMasterItem_Implementation(int ItemIndex, int ItemCount);
+
+
+	void SetItemSpawner();
 };

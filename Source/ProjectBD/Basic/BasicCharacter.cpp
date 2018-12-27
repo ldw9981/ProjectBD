@@ -436,8 +436,14 @@ bool ABasicCharacter::IsDead()
 	return CurrentHP <= 0;
 }
 
-void ABasicCharacter::AddInteraction(AMasterItem * NewItem)
+
+void ABasicCharacter::AddInteraction(int SpawnID)
 {
+	if (RandomItemSpawner == nullptr)
+	{
+		SetItemSpawner();
+	}
+	AMasterItem* NewItem = RandomItemSpawner->GetMasterItem(SpawnID);
 	if (!NewItem || NewItem->IsPendingKill())
 	{
 		return;
@@ -457,8 +463,13 @@ void ABasicCharacter::AddInteraction(AMasterItem * NewItem)
 
 }
 
-void ABasicCharacter::RemoveInteraction(AMasterItem * NewItem)
+void ABasicCharacter::RemoveInteraction(int SpawnID)
 {
+	if (RandomItemSpawner == nullptr)
+	{
+		SetItemSpawner();
+	}
+	AMasterItem* NewItem = RandomItemSpawner->GetMasterItem(SpawnID);
 	if (!NewItem || NewItem->IsPendingKill())
 	{
 		return;
@@ -588,7 +599,7 @@ void ABasicCharacter::C2S_Interaction_Implementation(FVector Location)
 		return;
 	}
 
-	if (PickupItem(MasterItem))
+	if (PickupItem(MasterItem->ItemSpawnID))
 	{
 
 	}
@@ -603,12 +614,22 @@ void ABasicCharacter::ToggleInventory()
 	}
 }
 
-bool ABasicCharacter::PickupItem(AMasterItem* MasterItem)
+bool ABasicCharacter::PickupItem(int SpawnID)
 {
+	if (RandomItemSpawner == nullptr)
+	{
+		SetItemSpawner();
+	}
+	AMasterItem* MasterItem = RandomItemSpawner->GetMasterItem(SpawnID);
+	if (!MasterItem || MasterItem->IsPendingKill())
+	{
+		return false;
+	}
+
 	if (Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount))
 	{
-		RemoveInteraction(MasterItem);
-		S2A_DestroyMasterItem(MasterItem->ItemSpawnID);
+		RemoveInteraction(SpawnID);
+		S2A_DestroyMasterItem(SpawnID);
 		ABasicPC* PC = Cast<ABasicPC>(GetController());
 		if (PC)
 		{
@@ -886,11 +907,7 @@ void ABasicCharacter::S2A_DestroyMasterItem_Implementation(int SpawnID)
 {
 	if (RandomItemSpawner == nullptr)
 	{
-		TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
-		TArray<AActor*> Results;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
-		check(Results.Num()==1);
-		RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+		SetItemSpawner();
 	}
 
 	RandomItemSpawner->DestroyMasterItem(SpawnID);
@@ -900,16 +917,23 @@ void ABasicCharacter::S2A_CreateMasterItem_Implementation(int ItemIndex, int Ite
 {
 	if (RandomItemSpawner == nullptr)
 	{
-		TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
-		TArray<AActor*> Results;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
-		check(Results.Num() == 1);
-		RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+		SetItemSpawner();
 	}
 
 	AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(ItemIndex, ItemCount);
 	MasterItem->SetActorLocationAndRotation(GetMesh()->GetComponentLocation() + GetActorForwardVector() * 30.0f,
 		GetMesh()->GetComponentRotation());
+}
+
+void ABasicCharacter::SetItemSpawner()
+{
+
+	TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
+	TArray<AActor*> Results;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
+	check(Results.Num() == 1);
+	RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+
 }
 
 

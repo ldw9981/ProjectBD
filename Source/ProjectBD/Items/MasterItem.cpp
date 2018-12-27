@@ -44,7 +44,7 @@ void AMasterItem::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	if (OtherActor->ActorHasTag(FName(TEXT("Player"))))
 	{
 		ABasicCharacter* Pawn = Cast<ABasicCharacter>(OtherActor);
-		Pawn->AddInteraction(this);
+		Pawn->AddInteraction(ItemSpawnID);
 	}
 }
 
@@ -56,7 +56,7 @@ void AMasterItem::OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
 	if (OtherActor->ActorHasTag(FName(TEXT("Player"))))
 	{
 		ABasicCharacter* Pawn = Cast<ABasicCharacter>(OtherActor);
-		Pawn->RemoveInteraction(this);
+		Pawn->RemoveInteraction(ItemSpawnID);
 	}
 }
 
