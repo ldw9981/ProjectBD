@@ -189,6 +189,12 @@ public:
 	void ToggleInventory();
 	void DropItem(int InventoryIndex);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void C2S_DropItem(int InventoryIndex);
+	bool C2S_DropItem_Validate(int InventoryIndex);
+	void C2S_DropItem_Implementation(int InventoryIndex);
+
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server, Reliable, WithValidation)

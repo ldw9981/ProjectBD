@@ -13,9 +13,9 @@ struct PROJECTBD_API FInventoryItemInfo
 	GENERATED_USTRUCT_BODY()
 
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY()
 	int ItemIndex;
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	UPROPERTY()
 	int ItemCount;
 };
 
@@ -37,13 +37,11 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-
-
 	TArray<FInventoryItemInfo> ItemList;
-	bool AddItem(int ItemIndex,int Count);
+	bool AddItem(int ItemIndex,int ItemCount);
 	bool UseItem(int InventoryIndex);
 	bool DropItem(int Index);
-	bool CheckAdd(int ItemIndex, int Count);
+	bool CheckAdd(int ItemIndex, int ItemCount);
 
 	int GetSameItemIndex(FItemDataTable Item);
 

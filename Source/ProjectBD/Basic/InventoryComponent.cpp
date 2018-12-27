@@ -34,14 +34,14 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 	// ...
 }
 
-bool UInventoryComponent::AddItem(int ItemIndex, int Count)
+bool UInventoryComponent::AddItem(int ItemIndex, int ItemCount)
 {
 	//인벤토리 풀 체크
 	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	FItemDataTable& ItemData = GI->GetItemData(ItemIndex);
 	FInventoryItemInfo InventoryItemInfo;
 	InventoryItemInfo.ItemIndex = ItemIndex;
-	InventoryItemInfo.ItemCount = Count;
+	InventoryItemInfo.ItemCount = ItemCount;
 
 	if (ItemData.IsOverlapItemType())
 	{
@@ -55,7 +55,7 @@ bool UInventoryComponent::AddItem(int ItemIndex, int Count)
 		else
 		{
 			//갯수 증가
-			ItemList[Index].ItemCount += Count;
+			ItemList[Index].ItemCount += ItemCount;
 		}
 	}
 	else
@@ -117,7 +117,7 @@ bool UInventoryComponent::DropItem(int Index)
 	return true;
 }
 
-bool UInventoryComponent::CheckAdd(int ItemIndex, int Count)
+bool UInventoryComponent::CheckAdd(int ItemIndex, int ItemCount)
 {
 	//인벤토리 풀 체크 일단 제한은 없다.
 	return true;

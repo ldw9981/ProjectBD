@@ -25,7 +25,8 @@
 #include "Battle/BattleGM.h"
 #include "InventoryComponent.h"
 #include "Items/RandomItemSpawner.h"
-
+#include "Engine/GameEngine.h"
+#include "Items/MasterItem.h"
 
 // Sets default values
 ABasicCharacter::ABasicCharacter()
@@ -618,8 +619,8 @@ void ABasicCharacter::C2S_Interaction_Implementation(FVector Location)
 	{
 		return;
 	}
-
-	/*
+	UE_LOG(LogClass, Warning, TEXT(__FUNCTION__));
+	// 서버업데이트
 	if (Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount))
 	{
 		RemoveInteraction(MasterItem->ItemSpawnID);
@@ -628,13 +629,14 @@ void ABasicCharacter::C2S_Interaction_Implementation(FVector Location)
 		{
 			PC->UpdateInventory();
 		}
+		
 	}
-	*/
-	S2C_AddToInventory_Implementation(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
+	// 리플리케이션을 쓰면 모든 클라이언트에 인벤정보가 보내지므로 사용하지않는다.
+	S2C_AddToInventory(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
 	S2A_DestroyMasterItem(MasterItem->ItemSpawnID);
 }
 void ABasicCharacter::S2C_AddToInventory_Implementation(int ItemSpwanID,int ItemIndex,int ItemCount)
-{
+{	
 	if (Inventory->AddItem(ItemIndex, ItemCount))
 	{
 		RemoveInteraction(ItemSpwanID);
@@ -658,9 +660,7 @@ void ABasicCharacter::DropItem(int InventoryIndex)
 	if (!Inventory->DropItem(InventoryIndex))
 	{
 		return;
-	}
-
-	S2A_CreateMasterItem(ItemIndex, ItemCount);
+	}	
 
 	ABasicPC* PC = Cast<ABasicPC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (PC)
@@ -668,23 +668,7 @@ void ABasicCharacter::DropItem(int InventoryIndex)
 		PC->UpdateInventory();
 	}
 
-
-
-
-	/*
-	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (GI)
-	{
-		if (GI->Inventory->DropItem(InventoryIndex))
-		{
-			ABasicPC* PC = Cast<ABasicPC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-			if (PC)
-			{
-				PC->UpdateInventory();
-			}
-		}
-	}
-	*/
+	C2S_DropItem(InventoryIndex);
 }
 
 void ABasicCharacter::ToggleInventory()
@@ -694,6 +678,27 @@ void ABasicCharacter::ToggleInventory()
 	{
 		PC->ToggleInventory();
 	}
+}
+
+bool ABasicCharacter::C2S_DropItem_Validate(int InventoryIndex)
+{
+	return true;
+}
+
+void ABasicCharacter::C2S_DropItem_Implementation(int InventoryIndex)
+{
+	int ItemIndex = Inventory->GetItemIndex(InventoryIndex);
+	int ItemCount = Inventory->GetItemCount(InventoryIndex);
+	if (ItemIndex == -1)
+	{
+		return;
+	}
+
+	if (!Inventory->DropItem(InventoryIndex))
+	{
+		return;
+	}
+	S2A_CreateMasterItem(ItemIndex, ItemCount);
 }
 
 void ABasicCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
