@@ -43,6 +43,7 @@ public:
 	bool AddItem(int ItemIndex,int Count);
 	bool UseItem(int InventoryIndex);
 	bool DropItem(int Index);
+	bool CheckAdd(int ItemIndex, int Count);
 
 	int GetSameItemIndex(FItemDataTable Item);
 

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -161,10 +161,14 @@ public:
 	bool IsDead();
 
 	class ARandomItemSpawner*  RandomItemSpawner=nullptr;
-	TArray<class AMasterItem*> InteractionItemList;
+	TArray<class AMasterItem*> InteractionItemList;		// 동기화 안함
 
+	
 	void AddInteraction(int SpawnID);
+
 	void RemoveInteraction(int SpawnID);
+
+
 	int GetClosestItem(FVector SightLocation);
 	FVector GetSightLocation();
 
@@ -177,11 +181,12 @@ public:
 	bool C2S_Interaction_Validate(FVector Location);
 	void C2S_Interaction_Implementation(FVector Location);
 
+	UFUNCTION(Client, Reliable)
+	void S2C_AddToInventory(int ItemSpwanID, int ItemIndex, int ItemCount);
+	void S2C_AddToInventory_Implementation(int ItemSpwanID, int ItemIndex, int ItemCount);
+
 
 	void ToggleInventory();
-
-	bool PickupItem(int SpawnID);
-
 	void DropItem(int InventoryIndex);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

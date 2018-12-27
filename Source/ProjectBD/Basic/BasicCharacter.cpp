@@ -103,6 +103,7 @@ void ABasicCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+//동기화 안함. 각 클라이언트의 월드상의 아이템과 시야기준으로 툴팁 표시 
 void ABasicCharacter::CheckItem()
 {
 	if (InteractionItemList.Num() > 0)
@@ -439,6 +440,12 @@ bool ABasicCharacter::IsDead()
 
 void ABasicCharacter::AddInteraction(int SpawnID)
 {
+	ABasicPC* PC = Cast<ABasicPC>(GetController());
+	if (!PC)
+	{
+		return;
+	}
+
 	if (RandomItemSpawner == nullptr)
 	{
 		SetItemSpawner();
@@ -450,8 +457,6 @@ void ABasicCharacter::AddInteraction(int SpawnID)
 	}
 
 	InteractionItemList.Add(NewItem);
-	ABasicPC* PC = Cast<ABasicPC>(GetController());
-
 	GetWorld()->GetTimerManager().ClearTimer(ItemCheckHandle);
 	GetWorld()->GetTimerManager().SetTimer(
 		ItemCheckHandle,
@@ -465,6 +470,12 @@ void ABasicCharacter::AddInteraction(int SpawnID)
 
 void ABasicCharacter::RemoveInteraction(int SpawnID)
 {
+	ABasicPC* PC = Cast<ABasicPC>(GetController());
+	if (!PC)
+	{
+		return;
+	}
+
 	if (RandomItemSpawner == nullptr)
 	{
 		SetItemSpawner();
@@ -476,7 +487,6 @@ void ABasicCharacter::RemoveInteraction(int SpawnID)
 	}
 
 	InteractionItemList.Remove(NewItem);
-	ABasicPC* PC = Cast<ABasicPC>(GetController());
 
 	if (InteractionItemList.Num() > 0)
 	{
@@ -599,46 +609,41 @@ void ABasicCharacter::C2S_Interaction_Implementation(FVector Location)
 		return;
 	}
 
-	if (PickupItem(MasterItem->ItemSpawnID))
-	{
-
-	}
-}
-
-void ABasicCharacter::ToggleInventory()
-{
-	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	if (PC)
-	{
-		PC->ToggleInventory();
-	}
-}
-
-bool ABasicCharacter::PickupItem(int SpawnID)
-{
 	if (RandomItemSpawner == nullptr)
 	{
 		SetItemSpawner();
 	}
-	AMasterItem* MasterItem = RandomItemSpawner->GetMasterItem(SpawnID);
-	if (!MasterItem || MasterItem->IsPendingKill())
+
+	if (!Inventory->CheckAdd(MasterItem->ItemIndex, MasterItem->ItemCount))
 	{
-		return false;
+		return;
 	}
 
+	/*
 	if (Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount))
 	{
-		RemoveInteraction(SpawnID);
-		S2A_DestroyMasterItem(SpawnID);
+		RemoveInteraction(MasterItem->ItemSpawnID);
 		ABasicPC* PC = Cast<ABasicPC>(GetController());
 		if (PC)
 		{
 			PC->UpdateInventory();
 		}
-		return true;
 	}
-	// full
-	return false;
+	*/
+	S2C_AddToInventory_Implementation(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
+	S2A_DestroyMasterItem(MasterItem->ItemSpawnID);
+}
+void ABasicCharacter::S2C_AddToInventory_Implementation(int ItemSpwanID,int ItemIndex,int ItemCount)
+{
+	if (Inventory->AddItem(ItemIndex, ItemCount))
+	{
+		RemoveInteraction(ItemSpwanID);
+		ABasicPC* PC = Cast<ABasicPC>(GetController());
+		if (PC)
+		{
+			PC->UpdateInventory();
+		}
+	}
 }
 
 void ABasicCharacter::DropItem(int InventoryIndex)
@@ -680,6 +685,15 @@ void ABasicCharacter::DropItem(int InventoryIndex)
 		}
 	}
 	*/
+}
+
+void ABasicCharacter::ToggleInventory()
+{
+	ABasicPC* PC = Cast<ABasicPC>(GetController());
+	if (PC)
+	{
+		PC->ToggleInventory();
+	}
 }
 
 void ABasicCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -905,11 +919,13 @@ void ABasicCharacter::S2A_ReloadComplete_Implementation()
 
 void ABasicCharacter::S2A_DestroyMasterItem_Implementation(int SpawnID)
 {
+	//인터랙션 리스트에서 지워야함.
+	RemoveInteraction(SpawnID);
+
 	if (RandomItemSpawner == nullptr)
 	{
 		SetItemSpawner();
 	}
-
 	RandomItemSpawner->DestroyMasterItem(SpawnID);
 }
 

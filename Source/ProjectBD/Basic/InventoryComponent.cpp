@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "InventoryComponent.h"
 #include "BDGameInstance.h"
@@ -36,7 +36,7 @@ void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 bool UInventoryComponent::AddItem(int ItemIndex, int Count)
 {
-	//ÀÎº¥Åä¸® Ç® Ã¼Å©
+	//ì¸ë²¤í† ë¦¬ í’€ ì²´í¬
 	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	FItemDataTable& ItemData = GI->GetItemData(ItemIndex);
 	FInventoryItemInfo InventoryItemInfo;
@@ -48,19 +48,19 @@ bool UInventoryComponent::AddItem(int ItemIndex, int Count)
 		int Index = GetSameItemIndex(ItemData);
 		if (Index == -1)
 		{
-			//½Å±Ô Ãß°¡
+			//ì‹ ê·œ ì¶”ê°€
 			
 			ItemList.Add(InventoryItemInfo);
 		}
 		else
 		{
-			//°¹¼ö Áõ°¡
+			//ê°¯ìˆ˜ ì¦ê°€
 			ItemList[Index].ItemCount += Count;
 		}
 	}
 	else
 	{
-		//½Å±Ô Ãß°¡
+		//ì‹ ê·œ ì¶”ê°€
 		ItemList.Add(InventoryItemInfo);
 	}
 	return true;
@@ -83,18 +83,18 @@ bool UInventoryComponent::UseItem(int InventoryIndex)
 	FItemDataTable& ItemData = GI->GetItemData(ItemList[InventoryIndex].ItemIndex);
 	if (ItemData.IsOverlapItemType())
 	{
-		//»ç¿ëÇÏ´Â°Å
+		//ì‚¬ìš©í•˜ëŠ”ê±°
 		ItemList[InventoryIndex].ItemCount--;
-		//È¿°ú Àû¿ë
+		//íš¨ê³¼ ì ìš©
 		if (ItemList[InventoryIndex].ItemCount == 0)
 		{
-			//»ç¿ë ´ÙÇÑ ¾ÆÀÌÅÛÀ» »èÁ¦
+			//ì‚¬ìš© ë‹¤í•œ ì•„ì´í…œì„ ì‚­ì œ
 			ItemList.RemoveAt(InventoryIndex);
 		}
 	}
 	else
 	{
-		//Àåºñ
+		//ì¥ë¹„
 	}
 
 	return true;
@@ -114,6 +114,12 @@ bool UInventoryComponent::DropItem(int Index)
 	}
 
 	ItemList.RemoveAt(Index);
+	return true;
+}
+
+bool UInventoryComponent::CheckAdd(int ItemIndex, int Count)
+{
+	//ì¸ë²¤í† ë¦¬ í’€ ì²´í¬ ì¼ë‹¨ ì œí•œì€ ì—†ë‹¤.
 	return true;
 }
 
