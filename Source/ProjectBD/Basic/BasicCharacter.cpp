@@ -442,7 +442,7 @@ bool ABasicCharacter::IsDead()
 void ABasicCharacter::AddInteraction(int SpawnID)
 {
 	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	if (!PC)
+	if (!PC || !PC->IsLocalController())
 	{
 		return;
 	}
@@ -452,7 +452,7 @@ void ABasicCharacter::AddInteraction(int SpawnID)
 		SetItemSpawner();
 	}
 	AMasterItem* NewItem = RandomItemSpawner->GetMasterItem(SpawnID);
-	if (!NewItem || NewItem->IsPendingKill())
+	if (!NewItem || NewItem->IsPendingKill() || NewItem->ItemIndex == 0)
 	{
 		return;
 	}
@@ -472,7 +472,7 @@ void ABasicCharacter::AddInteraction(int SpawnID)
 void ABasicCharacter::RemoveInteraction(int SpawnID)
 {
 	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	if (!PC)
+	if (!PC || !PC->IsLocalController())
 	{
 		return;
 	}
@@ -482,12 +482,14 @@ void ABasicCharacter::RemoveInteraction(int SpawnID)
 		SetItemSpawner();
 	}
 	AMasterItem* NewItem = RandomItemSpawner->GetMasterItem(SpawnID);
-	if (!NewItem || NewItem->IsPendingKill())
+	if (!NewItem)
 	{
 		return;
 	}
 
 	InteractionItemList.Remove(NewItem);
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%d"), InteractionItemList.Num()));
 
 	if (InteractionItemList.Num() > 0)
 	{
@@ -522,6 +524,9 @@ int ABasicCharacter::GetClosestItem(FVector SightLocation)
 	int Index = -1;
 	for (int i = 0; i < InteractionItemList.Num(); ++i)
 	{
+		if (!InteractionItemList[i]->IsValidLowLevel() || InteractionItemList[i]->IsPendingKill())
+			continue;
+
 		float Distance = FVector::Distance(SightLocation, InteractionItemList[i]->GetActorLocation());
 		if (Min > Distance)
 		{
@@ -586,33 +591,36 @@ FVector ABasicCharacter::GetSightLocation()
 void ABasicCharacter::Interaction()
 {
 	FVector Location = GetSightLocation();
-
-	C2S_Interaction(Location);
-}
-
-bool ABasicCharacter::C2S_Interaction_Validate(FVector Location)
-{
-	return true;
-}
-
-void ABasicCharacter::C2S_Interaction_Implementation(FVector Location)
-{
-	//Item 추가
+	
 	if (InteractionItemList.Num() <= 0)
 	{
 		return;
 	}
-
 	int IndexClosestItem = GetClosestItem(Location);
 	AMasterItem* MasterItem = InteractionItemList[IndexClosestItem];
 	if (!MasterItem || MasterItem->IsPendingKill())
 	{
 		return;
 	}
+	C2S_Interaction(MasterItem->ItemSpawnID);
+}
 
+bool ABasicCharacter::C2S_Interaction_Validate(int ItemSpwanID)
+{
+	return true;
+}
+
+void ABasicCharacter::C2S_Interaction_Implementation(int ItemSpwanID)
+{
 	if (RandomItemSpawner == nullptr)
 	{
 		SetItemSpawner();
+	}
+
+	AMasterItem* MasterItem = RandomItemSpawner->GetMasterItem(ItemSpwanID);
+	if (!MasterItem || MasterItem->IsPendingKill())
+	{
+		return;
 	}
 
 	if (!Inventory->CheckAdd(MasterItem->ItemIndex, MasterItem->ItemCount))
@@ -621,31 +629,23 @@ void ABasicCharacter::C2S_Interaction_Implementation(FVector Location)
 	}
 	UE_LOG(LogClass, Warning, TEXT(__FUNCTION__));
 	// 서버업데이트
-	if (Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount))
-	{
-		RemoveInteraction(MasterItem->ItemSpawnID);
-		ABasicPC* PC = Cast<ABasicPC>(GetController());
-		if (PC)
-		{
-			PC->UpdateInventory();
-		}
-		
-	}
+	Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount);
+	
 	// 리플리케이션을 쓰면 모든 클라이언트에 인벤정보가 보내지므로 사용하지않는다.
 	S2C_AddToInventory(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
 	S2A_DestroyMasterItem(MasterItem->ItemSpawnID);
 }
 void ABasicCharacter::S2C_AddToInventory_Implementation(int ItemSpwanID,int ItemIndex,int ItemCount)
-{	
-	if (Inventory->AddItem(ItemIndex, ItemCount))
+{
+	ABasicPC* PC = Cast<ABasicPC>(GetController());
+	if (!PC)
 	{
-		RemoveInteraction(ItemSpwanID);
-		ABasicPC* PC = Cast<ABasicPC>(GetController());
-		if (PC)
-		{
-			PC->UpdateInventory();
-		}
+		return;
 	}
+
+	RemoveInteraction(ItemSpwanID);
+	Inventory->AddItem(ItemIndex, ItemCount);				
+	PC->UpdateInventory();			
 }
 
 void ABasicCharacter::DropItem(int InventoryIndex)
@@ -924,9 +924,8 @@ void ABasicCharacter::S2A_ReloadComplete_Implementation()
 
 void ABasicCharacter::S2A_DestroyMasterItem_Implementation(int SpawnID)
 {
-	//인터랙션 리스트에서 지워야함.
-	RemoveInteraction(SpawnID);
-
+	//RemoveInteraction(SpawnID);  
+	//사라질때 EndOverlap발생되어 인터랙션 제거하고, Iteraction접근은 Valid추가한다. 
 	if (RandomItemSpawner == nullptr)
 	{
 		SetItemSpawner();

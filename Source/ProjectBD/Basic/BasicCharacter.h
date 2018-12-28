@@ -161,7 +161,7 @@ public:
 	bool IsDead();
 
 	class ARandomItemSpawner*  RandomItemSpawner=nullptr;
-	TArray<class AMasterItem*> InteractionItemList;		// 동기화 안함
+	TArray<class AMasterItem*> InteractionItemList;		// 동기화 안함 클라이언트에서만 사용
 
 	
 	void AddInteraction(int SpawnID);
@@ -177,9 +177,9 @@ public:
 	void Interaction();
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void C2S_Interaction(FVector Location);
-	bool C2S_Interaction_Validate(FVector Location);
-	void C2S_Interaction_Implementation(FVector Location);
+	void C2S_Interaction(int ItemSpwanID);
+	bool C2S_Interaction_Validate(int ItemSpwanID);
+	void C2S_Interaction_Implementation(int ItemSpwanID);
 
 	UFUNCTION(Client, Reliable)
 	void S2C_AddToInventory(int ItemSpwanID, int ItemIndex, int ItemCount);
