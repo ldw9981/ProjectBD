@@ -41,11 +41,18 @@ void AMasterItem::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	bool bFromSweep,
 	const FHitResult& SweepResult )
 {
-	if (OtherActor->ActorHasTag(FName(TEXT("Player"))))
+	if (!OtherActor->ActorHasTag(FName(TEXT("Player"))))
 	{
-		ABasicCharacter* Pawn = Cast<ABasicCharacter>(OtherActor);
-		Pawn->AddInteraction(ItemSpawnID);
+		return;
 	}
+	
+	ABasicCharacter* Pawn = Cast<ABasicCharacter>(OtherActor);
+	if (!Pawn)
+	{
+		return;
+	}
+
+	Pawn->AddInteraction(this);	
 }
 
 void AMasterItem::OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
@@ -53,11 +60,18 @@ void AMasterItem::OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
 	UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex)
 {
-	if (OtherActor->ActorHasTag(FName(TEXT("Player"))))
+	if (!OtherActor->ActorHasTag(FName(TEXT("Player"))))
 	{
-		ABasicCharacter* Pawn = Cast<ABasicCharacter>(OtherActor);
-		Pawn->RemoveInteraction(ItemSpawnID);
+		return;
 	}
+
+	ABasicCharacter* Pawn = Cast<ABasicCharacter>(OtherActor);
+	if (!Pawn)
+	{
+		return;
+	}
+
+	Pawn->RemoveInteraction(this);
 }
 
 void AMasterItem::CompleteAsyncLoad()

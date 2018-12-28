@@ -439,7 +439,7 @@ bool ABasicCharacter::IsDead()
 }
 
 
-void ABasicCharacter::AddInteraction(int SpawnID)
+void ABasicCharacter::AddInteraction(AMasterItem* Item)
 {
 	ABasicPC* PC = Cast<ABasicPC>(GetController());
 	if (!PC || !PC->IsLocalController())
@@ -451,13 +451,8 @@ void ABasicCharacter::AddInteraction(int SpawnID)
 	{
 		SetItemSpawner();
 	}
-	AMasterItem* NewItem = RandomItemSpawner->GetMasterItem(SpawnID);
-	if (!NewItem || NewItem->IsPendingKill() || NewItem->ItemIndex == 0)
-	{
-		return;
-	}
 
-	InteractionItemList.Add(NewItem);
+	InteractionItemList.Add(Item);
 	GetWorld()->GetTimerManager().ClearTimer(ItemCheckHandle);
 	GetWorld()->GetTimerManager().SetTimer(
 		ItemCheckHandle,
@@ -469,7 +464,8 @@ void ABasicCharacter::AddInteraction(int SpawnID)
 
 }
 
-void ABasicCharacter::RemoveInteraction(int SpawnID)
+
+void ABasicCharacter::RemoveInteraction(AMasterItem* Item)
 {
 	ABasicPC* PC = Cast<ABasicPC>(GetController());
 	if (!PC || !PC->IsLocalController())
@@ -477,17 +473,7 @@ void ABasicCharacter::RemoveInteraction(int SpawnID)
 		return;
 	}
 
-	if (RandomItemSpawner == nullptr)
-	{
-		SetItemSpawner();
-	}
-	AMasterItem* NewItem = RandomItemSpawner->GetMasterItem(SpawnID);
-	if (!NewItem)
-	{
-		return;
-	}
-
-	InteractionItemList.Remove(NewItem);
+	InteractionItemList.Remove(Item);
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%d"), InteractionItemList.Num()));
 
@@ -633,7 +619,7 @@ void ABasicCharacter::C2S_Interaction_Implementation(int ItemSpwanID)
 	
 	// 리플리케이션을 쓰면 모든 클라이언트에 인벤정보가 보내지므로 사용하지않는다.
 	S2C_AddToInventory(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
-	S2A_DestroyMasterItem(MasterItem->ItemSpawnID);
+	S2A_DestroyMasterItem(MasterItem->ItemSpawnID);	
 }
 void ABasicCharacter::S2C_AddToInventory_Implementation(int ItemSpwanID,int ItemIndex,int ItemCount)
 {
@@ -642,8 +628,10 @@ void ABasicCharacter::S2C_AddToInventory_Implementation(int ItemSpwanID,int Item
 	{
 		return;
 	}
-
-	RemoveInteraction(ItemSpwanID);
+	if (RandomItemSpawner == nullptr)
+	{
+		SetItemSpawner();
+	}
 	Inventory->AddItem(ItemIndex, ItemCount);				
 	PC->UpdateInventory();			
 }

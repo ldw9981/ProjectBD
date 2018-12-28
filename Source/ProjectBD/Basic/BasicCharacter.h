@@ -163,10 +163,10 @@ public:
 	class ARandomItemSpawner*  RandomItemSpawner=nullptr;
 	TArray<class AMasterItem*> InteractionItemList;		// 동기화 안함 클라이언트에서만 사용
 
-	
-	void AddInteraction(int SpawnID);
-
-	void RemoveInteraction(int SpawnID);
+	//로컬 플레이어만 작동됨
+	void AddInteraction(AMasterItem* Item);
+	//로컬 플레이어만 작동됨
+	void RemoveInteraction(AMasterItem* Item);
 
 
 	int GetClosestItem(FVector SightLocation);
