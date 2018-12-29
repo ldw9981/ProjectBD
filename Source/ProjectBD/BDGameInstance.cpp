@@ -1,7 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BDGameInstance.h"
-#include "Items/InventorySystem.h"
 #include "ConstructorHelpers.h"
 
 UBDGameInstance::UBDGameInstance()

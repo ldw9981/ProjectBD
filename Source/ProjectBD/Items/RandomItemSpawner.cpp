@@ -53,13 +53,10 @@ void ARandomItemSpawner::Spwan_OnRep()
 	TArray<AActor*> Results;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), RandomItemPointClassType, Results);
 
-	FVector SourceLocation = GetActorLocation();
-	Results.Sort([SourceLocation](const AActor& A, const AActor& B)
+	Results.Sort([](const AActor& A, const AActor& B)
 	{
-		float DistanceA = FVector::DistSquared(SourceLocation, A.GetActorLocation());
-		float DistanceB = FVector::DistSquared(SourceLocation, B.GetActorLocation());
-
-		return DistanceA > DistanceB;
+		FString BString = B.GetActorLabel();
+		return A.GetActorLabel().Equals(BString);
 	});
 
 	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));

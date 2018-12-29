@@ -19,7 +19,6 @@
 #include "Items/MasterItem.h"
 #include "Basic/BasicPC.h"
 #include "BDGameInstance.h"
-#include "Items/InventorySystem.h"
 #include "Battle/BattleWidgetBase.h"
 #include "UnrealNetwork.h"
 #include "Battle/BattleGM.h"

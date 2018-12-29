@@ -6,7 +6,6 @@
 #include "Items/InventoryBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "BDGameInstance.h"
-#include "Items/InventorySystem.h"
 #include "Items/ItemSlotBase.h"
 #include "Battle/BattleWidgetBase.h"
 #include "BDGameInstance.h"
