@@ -26,6 +26,7 @@
 #include "Items/RandomItemSpawner.h"
 #include "Engine/GameEngine.h"
 #include "Items/MasterItem.h"
+#include "Items/RandomItemSpawner.h"
 
 // Sets default values
 ABasicCharacter::ABasicCharacter()
@@ -83,6 +84,8 @@ void ABasicCharacter::BeginPlay()
 	{
 		PC->bAlive = true;
 	}
+
+	SetItemSpawner();
 }
 
 void ABasicCharacter::SetHPBar()
@@ -446,11 +449,6 @@ void ABasicCharacter::AddInteraction(AMasterItem* Item)
 		return;
 	}
 
-	if (RandomItemSpawner == nullptr)
-	{
-		SetItemSpawner();
-	}
-
 	InteractionItemList.Add(Item);
 	GetWorld()->GetTimerManager().ClearTimer(ItemCheckHandle);
 	GetWorld()->GetTimerManager().SetTimer(
@@ -597,11 +595,6 @@ bool ABasicCharacter::C2S_Interaction_Validate(int ItemSpwanID)
 
 void ABasicCharacter::C2S_Interaction_Implementation(int ItemSpwanID)
 {
-	if (RandomItemSpawner == nullptr)
-	{
-		SetItemSpawner();
-	}
-
 	AMasterItem* MasterItem = RandomItemSpawner->GetMasterItem(ItemSpwanID);
 	if (!MasterItem || MasterItem->IsPendingKill())
 	{
@@ -627,10 +620,7 @@ void ABasicCharacter::S2C_AddToInventory_Implementation(int ItemSpwanID,int Item
 	{
 		return;
 	}
-	if (RandomItemSpawner == nullptr)
-	{
-		SetItemSpawner();
-	}
+
 	Inventory->AddItem(ItemIndex, ItemCount);				
 	PC->UpdateInventory();			
 }
@@ -918,20 +908,11 @@ void ABasicCharacter::S2A_DestroyMasterItem_Implementation(int SpawnID)
 {
 	//RemoveInteraction(SpawnID);  
 	//사라질때 EndOverlap발생되어 인터랙션 제거하고, Iteraction접근은 Valid추가한다. 
-	if (RandomItemSpawner == nullptr)
-	{
-		SetItemSpawner();
-	}
 	RandomItemSpawner->DestroyMasterItem(SpawnID);
 }
 
 void ABasicCharacter::S2A_CreateMasterItem_Implementation(int ItemIndex, int ItemCount)
 {
-	if (RandomItemSpawner == nullptr)
-	{
-		SetItemSpawner();
-	}
-
 	AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(ItemIndex, ItemCount);
 	MasterItem->SetActorLocationAndRotation(GetMesh()->GetComponentLocation() + GetActorForwardVector() * 30.0f,
 		GetMesh()->GetComponentRotation());
@@ -939,13 +920,15 @@ void ABasicCharacter::S2A_CreateMasterItem_Implementation(int ItemIndex, int Ite
 
 void ABasicCharacter::SetItemSpawner()
 {
-
+	if (RandomItemSpawner != nullptr)
+	{
+		return;
+	}
 	TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
 	TArray<AActor*> Results;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
 	check(Results.Num() == 1);
 	RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
-
 }
 
 
