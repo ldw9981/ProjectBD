@@ -188,6 +188,7 @@ public:
 
 	void ToggleInventory();
 	void DropItem(int InventoryIndex);
+	bool UseItem(int InventoryIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void C2S_DropItem(int InventoryIndex);

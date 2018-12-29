@@ -659,6 +659,11 @@ void ABasicCharacter::DropItem(int InventoryIndex)
 	C2S_DropItem(InventoryIndex);
 }
 
+bool ABasicCharacter::UseItem(int InventoryIndex)
+{
+	return Inventory->UseItem(InventoryIndex);
+}
+
 void ABasicCharacter::ToggleInventory()
 {
 	ABasicPC* PC = Cast<ABasicPC>(GetController());

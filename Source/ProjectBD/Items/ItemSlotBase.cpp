@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemSlotBase.h"
 #include "Components/TextBlock.h"
@@ -6,10 +6,10 @@
 #include "Components/Button.h"
 #include "BDGameInstance.h"
 #include "Kismet/GameplayStatics.h"
-#include "Items/InventorySystem.h"
 #include "Engine/StreamableManager.h"
 #include "Basic/BasicPC.h"
 #include "Basic/BasicCharacter.h"
+#include "Engine/Texture2D.h"
 
 void UItemSlotBase::NativeConstruct()
 {
@@ -27,17 +27,14 @@ void UItemSlotBase::NativeConstruct()
 //left Click
 void UItemSlotBase::OnClicked()
 {
-	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (GI)
+	ABasicPC* PC = Cast<ABasicPC>(GetOwningPlayer());
+	if (PC)
 	{
-		if (GI->Inventory->UseItem(InventoryIndex))
+		ABasicCharacter* Pawn = Cast<ABasicCharacter>(PC->GetPawn());
+		if (Pawn)
 		{
-			//ABasicPC* PC = Cast<ABasicPC>(GetOwningPlayer());
-			ABasicPC* PC = Cast<ABasicPC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-			if (PC)
-			{
-				PC->UpdateInventory();
-			}
+			Pawn->UseItem(InventoryIndex);
+
 		}
 	}
 }
@@ -61,7 +58,7 @@ FReply UItemSlotBase::NativeOnMouseButtonDown(const FGeometry & InGeometry, cons
 	return FReply::Unhandled();
 }
 
-//Array -> UI ¿¬°á
+//Array -> UI ì—°ê²°
 void UItemSlotBase::SetItemData(FItemDataTable NewItemData, int NewInventoryIndex,int NewCount)
 {
 	ItemData = NewItemData;

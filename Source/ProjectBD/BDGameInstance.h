@@ -15,9 +15,8 @@ class PROJECTBD_API UBDGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
-		UBDGameInstance();
+	UBDGameInstance();
 public:
-	class UInventorySystem* Inventory;
 
 	virtual void Init() override;
 

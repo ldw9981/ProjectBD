@@ -3,7 +3,6 @@
 #include "MasterItem.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
-#include "Items/ItemComponent.h"
 #include "Engine/StreamableManager.h"
 #include "Basic/BasicCharacter.h"
 #include "Kismet/KismetSystemLibrary.h"

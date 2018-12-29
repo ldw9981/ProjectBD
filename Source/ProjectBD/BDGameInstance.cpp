@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+Ôªø// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BDGameInstance.h"
 #include "Items/InventorySystem.h"
@@ -7,7 +7,7 @@
 UBDGameInstance::UBDGameInstance()
 {
 
-	//CSV∆ƒ¿œ ø¨∞·
+	//CSVÌååÏùº Ïó∞Í≤∞
 	static ConstructorHelpers::FObjectFinder<UDataTable> DT_ItemDataTable(TEXT("DataTable'/Game/Blueprints/Items/Data/DT_ItemTable.DT_ItemTable'"));
 	if (DT_ItemDataTable.Succeeded())
 	{
@@ -17,7 +17,7 @@ UBDGameInstance::UBDGameInstance()
 
 void UBDGameInstance::Init()
 {
-	Inventory = NewObject<UInventorySystem>(this);
+	//Inventory = NewObject<UInventorySystem>(this);
 
 	//For Test
 	if (UserID.Len() == 0)
