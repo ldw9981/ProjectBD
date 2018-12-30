@@ -38,8 +38,7 @@ void UBasicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		if (bIsReload)
 		{
 			if (!Montage_IsPlaying(Pawn->ReloadAnimation))
-			{
-				OnMontageBlendingOut.AddDynamic(this, &UBasicAnimInstance::BlendOut);
+			{				
 				UE_LOG(LogClass, Warning, TEXT("Reload"));
 				Montage_Play(Pawn->ReloadAnimation);
 			}
@@ -77,10 +76,4 @@ void UBasicAnimInstance::AnimNotify_ReloadComplete(UAnimNotify* Notify)
 		bIsReload = false; 
 		Pawn->bIsReload = false;
 	}
-}
-
-void UBasicAnimInstance::BlendOut(UAnimMontage* Montage, bool bInterrupted)
-{
-	UE_LOG(LogClass, Warning, TEXT("%s"), *Montage->GetName());
-	OnMontageBlendingOut.RemoveAll(this);
 }

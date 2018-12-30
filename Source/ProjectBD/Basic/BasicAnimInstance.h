@@ -43,9 +43,6 @@ public:
 	UFUNCTION()
 	void AnimNotify_ReloadComplete(UAnimNotify* Notify);
 
-	UFUNCTION()
-	void BlendOut(UAnimMontage * Montage, bool bInterrupted);
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	bool bIsReload = false;
 
