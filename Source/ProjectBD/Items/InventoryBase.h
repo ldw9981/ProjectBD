@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -16,10 +16,13 @@ class PROJECTBD_API UInventoryBase : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
-	TArray<class UItemSlotBase*> Slots;
+	TArray<class UItemSlotBase*> InventorySlots;
+	TArray<class UItemSlotBase*> PickableSlots;
 	
 
-	class UItemSlotBase* GetEmptySlot();
+	class UItemSlotBase* GetEmptySlotInventory();
+	void AllResetSlotInventory();
 
-	void AllResetSlot();
+	UItemSlotBase * GetEmptySlotPickable();
+	void AllResetSlotPickable();
 };

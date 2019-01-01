@@ -13,7 +13,8 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "Basic/InventoryComponent.h"
-
+#include "Basic/BasicCharacter.h"
+#include "Items/MasterItem.h"
 ABasicPC::ABasicPC()
 {
 	PlayerCameraManagerClass = ABasicPlayerCameraManager::StaticClass();
@@ -143,14 +144,15 @@ void ABasicPC::UpdateInventory()
 		return;
 	}
 
-	InventoryWidget->AllResetSlot();
+	InventoryWidget->AllResetSlotInventory();
+	InventoryWidget->AllResetSlotPickable();
 //	GetOwner();
-	AActor* Actor = GetPawn();
-	if(!Actor)
+	ABasicCharacter* BasicCharacter = Cast<ABasicCharacter>(GetPawn());
+	if(!BasicCharacter)
 	{
 		return;
 	}
-	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(Actor->GetComponentByClass(UInventoryComponent::StaticClass()));
+	UInventoryComponent* InventoryComponent = Cast<UInventoryComponent>(BasicCharacter->GetComponentByClass(UInventoryComponent::StaticClass()));
 	if (!InventoryComponent)
 	{
 		return;
@@ -160,7 +162,7 @@ void ABasicPC::UpdateInventory()
 	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	for (int i = 0; i < InventoryComponent->ItemList.Num(); ++i)
 	{
-		UItemSlotBase* Slot = InventoryWidget->GetEmptySlot();
+		UItemSlotBase* Slot = InventoryWidget->GetEmptySlotInventory();
 		if (Slot)
 		{
 			int ItemIndex = InventoryComponent->GetItemIndex(i);
@@ -172,24 +174,23 @@ void ABasicPC::UpdateInventory()
 			//인벤토리 풀
 		}
 	}
-	/*
-	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (GI)
+
+
+	for (int i = 0; i < BasicCharacter->InteractionItemList.Num(); ++i)
 	{
-		for (int i = 0; i < GI->Inventory->ItemList.Num(); ++i)
+		UItemSlotBase* Slot = InventoryWidget->GetEmptySlotPickable();
+		if (Slot)
 		{
-			UItemSlotBase* Slot = InventoryWidget->GetEmptySlot();
-			if (Slot)
-			{
-				Slot->SetItemData(GI->Inventory->ItemList[i], i);
-			}
-			else
-			{
-				//인벤토리 풀
-			}
+			int ItemIndex = BasicCharacter->InteractionItemList[i]->ItemIndex;
+			int ItemCount = BasicCharacter->InteractionItemList[i]->ItemCount;
+			Slot->SetItemData(GI->GetItemData(ItemIndex), i, ItemCount);
+		}
+		else
+		{
+			//인벤토리 풀
 		}
 	}
-	*/
+
 
 }
 

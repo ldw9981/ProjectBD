@@ -14,9 +14,6 @@ class PROJECTBD_API UBattleWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	FString PublicMessageData;
-
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float HpBarData;

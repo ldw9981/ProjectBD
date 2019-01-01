@@ -459,6 +459,7 @@ void ABasicCharacter::AddInteraction(AMasterItem* Item)
 		true,
 		0);
 
+	PC->UpdateInventory();
 }
 
 
@@ -497,6 +498,8 @@ void ABasicCharacter::RemoveInteraction(AMasterItem* Item)
 		}
 		GetWorld()->GetTimerManager().ClearTimer(ItemCheckHandle);
 	}
+
+	PC->UpdateInventory();
 }
 
 
