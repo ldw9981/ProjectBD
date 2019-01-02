@@ -25,4 +25,10 @@ public:
 
 	UItemSlotBase * GetEmptySlotPickable();
 	void AllResetSlotPickable();
+
+	void OnClickedLButtonInventory(UItemSlotBase* Slot);
+	void OnClickedRButtonInventory(UItemSlotBase* Slot);
+
+	void OnClickedLButtonPickable(UItemSlotBase* Slot);
+	void OnClickedRButtonPickable(UItemSlotBase* Slot);
 };

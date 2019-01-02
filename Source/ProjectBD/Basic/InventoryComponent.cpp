@@ -68,7 +68,7 @@ bool UInventoryComponent::AddItem(int ItemIndex, int ItemCount)
 
 bool UInventoryComponent::UseItem(int InventoryIndex)
 {
-	if (InventoryIndex == -1)
+	if (InventoryIndex == -1 || InventoryIndex >= ItemList.Num())
 	{
 		return false;
 	}
@@ -103,7 +103,7 @@ bool UInventoryComponent::UseItem(int InventoryIndex)
 
 bool UInventoryComponent::DropItem(int Index)
 {
-	if (Index == -1)
+	if (Index == -1 || Index >= ItemList.Num())
 	{
 		return false;
 	}

@@ -17,41 +17,17 @@ void UItemSlotBase::NativeConstruct()
 	ItemName = Cast<UTextBlock>(GetWidgetFromName(TEXT("ItemName")));
 	ItemCount = Cast<UTextBlock>(GetWidgetFromName(TEXT("ItemCount")));
 	ItemButton = Cast<UButton>(GetWidgetFromName(TEXT("ItemButton")));
-
-	if (ItemButton)
-	{
-		ItemButton->OnClicked.AddDynamic(this, &UItemSlotBase::OnClicked);
-	}
 }
-
-//left Click
-void UItemSlotBase::OnClicked()
-{
-	ABasicPC* PC = Cast<ABasicPC>(GetOwningPlayer());
-	if (PC)
-	{
-		ABasicCharacter* Pawn = Cast<ABasicCharacter>(PC->GetPawn());
-		if (Pawn)
-		{
-			Pawn->UseItem(InventoryIndex);
-
-		}
-	}
-}
-
-FReply UItemSlotBase::NativeOnMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
+FReply UItemSlotBase::NativeOnPreviewMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
 {
 	if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
 	{
-		ABasicPC* PC = Cast<ABasicPC>(GetOwningPlayer());
-		if (PC)
-		{
-			ABasicCharacter* Pawn = Cast<ABasicCharacter>(PC->GetPawn());
-			if (Pawn)
-			{
-				Pawn->DropItem(InventoryIndex);
-			}
-		}
+		OnClickedRButton.ExecuteIfBound(this);
+		return FReply::Handled();
+	}
+	else if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+	{
+		OnClickedLButton.ExecuteIfBound(this);
 		return FReply::Handled();
 	}
 
@@ -62,7 +38,7 @@ FReply UItemSlotBase::NativeOnMouseButtonDown(const FGeometry & InGeometry, cons
 void UItemSlotBase::SetItemData(FItemDataTable NewItemData, int NewInventoryIndex,int NewCount)
 {
 	ItemData = NewItemData;
-	InventoryIndex = NewInventoryIndex;
+	ArrayIndex = NewInventoryIndex;
 	FStreamableManager Loader;
 	if (ItemThumnail)
 	{

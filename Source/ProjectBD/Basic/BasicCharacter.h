@@ -174,7 +174,8 @@ public:
 
 	FTimerHandle ItemCheckHandle;
 
-	void Interaction();
+	void InteractionClose();
+	void InteractionIndex(int InteractionIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void C2S_Interaction(int ItemSpwanID);

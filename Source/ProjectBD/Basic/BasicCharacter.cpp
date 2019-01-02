@@ -162,7 +162,7 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 	PlayerInputComponent->BindAction(TEXT("RightLean"), IE_Pressed, this, &ABasicCharacter::StartRightLean);
 
-	PlayerInputComponent->BindAction(TEXT("Use"), IE_Pressed, this, &ABasicCharacter::Interaction);
+	PlayerInputComponent->BindAction(TEXT("Use"), IE_Pressed, this, &ABasicCharacter::InteractionClose);
 
 	PlayerInputComponent->BindAction(TEXT("ToggleInventory"), IE_Pressed, this, &ABasicCharacter::ToggleInventory);
 
@@ -574,16 +574,19 @@ FVector ABasicCharacter::GetSightLocation()
 
 }
 
-void ABasicCharacter::Interaction()
+void ABasicCharacter::InteractionClose()
 {
 	FVector Location = GetSightLocation();
-	
-	if (InteractionItemList.Num() <= 0)
+	InteractionIndex(GetClosestItem(Location));
+}
+
+void ABasicCharacter::InteractionIndex(int InteractionIndex)
+{	
+	if (InteractionItemList.Num() <= 0 || InteractionItemList.Num() <= InteractionIndex)
 	{
 		return;
 	}
-	int IndexClosestItem = GetClosestItem(Location);
-	AMasterItem* MasterItem = InteractionItemList[IndexClosestItem];
+	AMasterItem* MasterItem = InteractionItemList[InteractionIndex];
 	if (!MasterItem || MasterItem->IsPendingKill())
 	{
 		return;
