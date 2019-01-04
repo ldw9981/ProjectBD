@@ -261,6 +261,7 @@ public:
 	void S2A_ReloadComplete();
 	void S2A_ReloadComplete_Implementation();
 
+	/*
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_DestroyMasterItem(int SpawnID);
 	void S2A_DestroyMasterItem_Implementation(int SpawnID);
@@ -268,7 +269,7 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_CreateMasterItem(int ItemIndex,int ItemCount);
 	void S2A_CreateMasterItem_Implementation(int ItemIndex, int ItemCount);
-
+	*/
 
 	void SetItemSpawner();
 };

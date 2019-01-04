@@ -617,7 +617,8 @@ void ABasicCharacter::C2S_Interaction_Implementation(int ItemSpwanID)
 	
 	// 리플리케이션을 쓰면 모든 클라이언트에 인벤정보가 보내지므로 사용하지않는다.
 	S2C_AddToInventory(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
-	S2A_DestroyMasterItem(MasterItem->ItemSpawnID);	
+
+	RandomItemSpawner->Multicast_DestroyMasterItem(MasterItem->ItemSpawnID);
 }
 void ABasicCharacter::S2C_AddToInventory_Implementation(int ItemSpwanID,int ItemIndex,int ItemCount)
 {
@@ -686,7 +687,7 @@ void ABasicCharacter::C2S_DropItem_Implementation(int InventoryIndex)
 	{
 		return;
 	}
-	S2A_CreateMasterItem(ItemIndex, ItemCount);
+	RandomItemSpawner->Multicast_SpawnMasterItem(ItemIndex, ItemCount, GetMesh()->GetComponentLocation() + GetActorForwardVector() * 30.0f);	
 }
 
 void ABasicCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -910,6 +911,7 @@ void ABasicCharacter::S2A_ReloadComplete_Implementation()
 	bIsReload = false;
 }
 
+/*
 void ABasicCharacter::S2A_DestroyMasterItem_Implementation(int SpawnID)
 {
 	//RemoveInteraction(SpawnID);  
@@ -923,6 +925,7 @@ void ABasicCharacter::S2A_CreateMasterItem_Implementation(int ItemIndex, int Ite
 	MasterItem->SetActorLocationAndRotation(GetMesh()->GetComponentLocation() + GetActorForwardVector() * 30.0f,
 		GetMesh()->GetComponentRotation());
 }
+*/
 
 void ABasicCharacter::SetItemSpawner()
 {

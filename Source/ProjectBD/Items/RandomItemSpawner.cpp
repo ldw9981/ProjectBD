@@ -53,10 +53,13 @@ void ARandomItemSpawner::Spwan_OnRep()
 	TArray<AActor*> Results;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), RandomItemPointClassType, Results);
 
-	Results.Sort([](const AActor& A, const AActor& B)
+	FVector SourceLocation = GetActorLocation();
+	Results.Sort([SourceLocation](const AActor& A, const AActor& B)
 	{
-		FString BString = B.GetActorLabel();
-		return A.GetActorLabel().Equals(BString);
+		float DistanceA = FVector::DistSquared(SourceLocation, A.GetActorLocation());
+		float DistanceB = FVector::DistSquared(SourceLocation, B.GetActorLocation());
+
+		return DistanceA > DistanceB;
 	});
 
 	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
@@ -73,7 +76,7 @@ void ARandomItemSpawner::Spwan_OnRep()
 			SpawnItems.Add(UniqueSpawnID, Item);
 
 			Item->SetActorTransform(Results[Index]->GetActorTransform());
-			Item->SetItem(UniqueSpawnID,RandomItems[Index], ItemData.ItemCount);
+			Item->SetItem(UniqueSpawnID, RandomItems[Index], ItemData.ItemCount);
 		}
 	}
 }
@@ -111,5 +114,27 @@ bool ARandomItemSpawner::DestroyMasterItem(int TargetSpawnID)
 		return true;
 	}
 	return false;
+}
+
+void ARandomItemSpawner::Multicast_SpawnMasterItem_Implementation(int ItemIndex, int ItemCount,FVector Location)
+{
+	TSubclassOf<AMasterItem> MasterItemClassType = AMasterItem::StaticClass();
+	FActorSpawnParameters SpawnParms;
+	AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
+	UniqueSpawnID++;
+	SpawnItems.Add(UniqueSpawnID, Item);
+
+	Item->SetItem(UniqueSpawnID, ItemIndex, ItemCount);
+	Item->SetActorLocation(Location);
+}
+
+
+void ARandomItemSpawner::Multicast_DestroyMasterItem_Implementation(int TargetSpawnID)
+{
+	AMasterItem* Item = Cast<AMasterItem>(SpawnItems.FindAndRemoveChecked(TargetSpawnID));
+	if (Item)
+	{
+		Item->Destroy();		
+	}
 }
 

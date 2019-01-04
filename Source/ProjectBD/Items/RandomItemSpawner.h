@@ -21,7 +21,7 @@ protected:
 
 	int UniqueSpawnID = 0;
 
-	TMap<int,class AMasterItem*> SpawnItems;
+	TMap<int,class AMasterItem*> SpawnItems;		
 
 	UPROPERTY(ReplicatedUsing = "Spwan_OnRep")
 	TArray<int> RandomItems;
@@ -39,5 +39,14 @@ public:
 
 	class AMasterItem* SpawnMasterItem(int ItemIndex, int ItemCount);
 	bool DestroyMasterItem(int TargetSpawnID);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SpawnMasterItem(int ItemIndex, int ItemCount, FVector Location);
+	void Multicast_SpawnMasterItem_Implementation(int ItemIndex, int ItemCount, FVector Location);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_DestroyMasterItem(int TargetSpawnID);
+	void Multicast_DestroyMasterItem_Implementation(int TargetSpawnID);
+
 	AMasterItem* GetMasterItem(int SpawnID);
 };
