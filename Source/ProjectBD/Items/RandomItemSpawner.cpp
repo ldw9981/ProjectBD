@@ -65,19 +65,9 @@ void ARandomItemSpawner::Spwan_OnRep()
 	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	for (int Index = 0; Index < Results.Num(); Index++)
 	{
-		FItemDataTable& ItemData = GI->GetItemData(RandomItems[Index]);
-
-		TSubclassOf<AMasterItem> MasterItemClassType = AMasterItem::StaticClass();
-		FActorSpawnParameters SpawnParms;
-		AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
-		if (Item)
-		{
-			UniqueSpawnID++;
-			SpawnItems.Add(UniqueSpawnID, Item);
-
-			Item->SetActorTransform(Results[Index]->GetActorTransform());
-			Item->SetItem(UniqueSpawnID, RandomItems[Index], ItemData.ItemCount);
-		}
+		FItemDataTable& ItemData = GI->GetItemData(RandomItems[Index]);	
+		AMasterItem* Item = SpawnMasterItem(ItemData.ItemIndex, ItemData.ItemCount);
+		Item->SetActorTransform(Results[Index]->GetActorTransform());		
 	}
 }
 
@@ -118,13 +108,7 @@ bool ARandomItemSpawner::DestroyMasterItem(int TargetSpawnID)
 
 void ARandomItemSpawner::Multicast_SpawnMasterItem_Implementation(int ItemIndex, int ItemCount,FVector Location)
 {
-	TSubclassOf<AMasterItem> MasterItemClassType = AMasterItem::StaticClass();
-	FActorSpawnParameters SpawnParms;
-	AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
-	UniqueSpawnID++;
-	SpawnItems.Add(UniqueSpawnID, Item);
-
-	Item->SetItem(UniqueSpawnID, ItemIndex, ItemCount);
+	AMasterItem* Item = SpawnMasterItem(ItemIndex, ItemCount);
 	Item->SetActorLocation(Location);
 }
 

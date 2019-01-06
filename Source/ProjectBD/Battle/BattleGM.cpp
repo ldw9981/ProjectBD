@@ -1,8 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BattleGM.h"
 #include "Engine/World.h"
 #include "Basic/BasicPC.h"
+#include "Basic/BasicCharacter.h"
 #include "Battle/BattleGS.h"
 
 void ABattleGM::BeginPlay()
@@ -32,20 +33,28 @@ bool ABattleGM::CheckFinish()
 	return false;
 }
 
-//Player Á×À¸¸é È£Ãâ 
+//Player ì£½ìœ¼ë©´ í˜¸ì¶œ 
 int ABattleGM::ReCountAliveCount()
 {
 	int Count = 0;
 	for (auto Iter = GetWorld()->GetPlayerControllerIterator(); Iter; ++Iter)
 	{
 		ABasicPC* PC = Cast<ABasicPC>(*Iter);
-		if (PC)
+		if (!PC)
 		{
-			if (PC->bAlive)
-			{
-				Count++;
-			}
+			continue;
 		}
+		ABasicCharacter* Character = Cast<ABasicCharacter>(PC->GetPawn());
+		if (!Character)
+		{
+			continue;
+		}
+		
+		if (Character->IsDead())
+		{
+			continue;
+		}		
+		Count++;		
 	}
 
 	ABattleGS* GS = GetGameState<ABattleGS>();

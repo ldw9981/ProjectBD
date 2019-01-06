@@ -20,14 +20,13 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void SetHPBar();
+
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION()
-	void CheckItem();
+
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -43,8 +42,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UWeaponComponent* Weapon;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UInventoryComponent* Inventory;
 
 
 	void MoveForward(float Value);
@@ -91,6 +88,9 @@ public:
 	UFUNCTION()
 	void IsFire_OnRep();
 
+	void ToggleInventory();
+	void InteractionClose();
+
 	UFUNCTION()
 	void StartFire();
 
@@ -111,10 +111,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
 	class USoundBase* FireSound;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ItemBox")
+	TSubclassOf<class AStaticMeshActor> ItemBox;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAcess = true))
 	class UMaterialInstance* BulletDecal;
+
 
 public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
@@ -161,40 +164,7 @@ public:
 	bool IsDead();
 
 	class ARandomItemSpawner*  RandomItemSpawner=nullptr;
-	TArray<class AMasterItem*> InteractionItemList;		// 동기화 안함 클라이언트에서만 사용
 
-	//로컬 플레이어만 작동됨
-	void AddInteraction(AMasterItem* Item);
-	//로컬 플레이어만 작동됨
-	void RemoveInteraction(AMasterItem* Item);
-
-
-	int GetClosestItem(FVector SightLocation);
-	FVector GetSightLocation();
-
-	FTimerHandle ItemCheckHandle;
-
-	void InteractionClose();
-	void InteractionIndex(int InteractionIndex);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void C2S_Interaction(int ItemSpwanID);
-	bool C2S_Interaction_Validate(int ItemSpwanID);
-	void C2S_Interaction_Implementation(int ItemSpwanID);
-
-	UFUNCTION(Client, Reliable)
-	void S2C_AddToInventory(int ItemSpwanID, int ItemIndex, int ItemCount);
-	void S2C_AddToInventory_Implementation(int ItemSpwanID, int ItemIndex, int ItemCount);
-
-
-	void ToggleInventory();
-	void DropItem(int InventoryIndex);
-	bool UseItem(int InventoryIndex);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void C2S_DropItem(int InventoryIndex);
-	bool C2S_DropItem_Validate(int InventoryIndex);
-	void C2S_DropItem_Implementation(int InventoryIndex);
 
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -261,15 +231,13 @@ public:
 	void S2A_ReloadComplete();
 	void S2A_ReloadComplete_Implementation();
 
-	/*
 	UFUNCTION(NetMulticast, Reliable)
-	void S2A_DestroyMasterItem(int SpawnID);
-	void S2A_DestroyMasterItem_Implementation(int SpawnID);
+	void S2A_SetCollisionIgnore();
+	void S2A_SetCollisionIgnore_Implementation();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void S2A_CreateMasterItem(int ItemIndex,int ItemCount);
-	void S2A_CreateMasterItem_Implementation(int ItemIndex, int ItemCount);
-	*/
+	void S2A_PlayDeathAnimation();
+	void S2A_PlayDeathAnimation_Implementation();
 
 	void SetItemSpawner();
 };

@@ -53,7 +53,7 @@ ABasicCharacter::ABasicCharacter()
 	Weapon = CreateDefaultSubobject<UWeaponComponent>(TEXT("Weapon"));
 	Weapon->SetupAttachment(GetMesh(), TEXT("RHandWeapon"));
 
-	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+
 
 	//앉을때 눈 높이 갑자기 이동 막기
 	CapsuleCrouchHalfHeight = GetCharacterMovement()->CrouchedHalfHeight;
@@ -77,28 +77,16 @@ void ABasicCharacter::BeginPlay()
 	GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
 
-	SetHPBar();
+	
 
 	ABasicPC* PC = Cast<ABasicPC>(GetController());
 	if (PC)
 	{
-		PC->bAlive = true;
+		PC->SetHPBar(CurrentHP / MaxHP);
 	}
 
 	SetItemSpawner();
 }
-
-void ABasicCharacter::SetHPBar()
-{
-	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	if (PC && PC->IsLocalPlayerController() && PC->BattleWidget)
-	{
-		PC->BattleWidget->HpBarData = CurrentHP / MaxHP;
-	}
-}
-
-
-
 
 // Called every frame
 void ABasicCharacter::Tick(float DeltaTime)
@@ -106,26 +94,7 @@ void ABasicCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-//동기화 안함. 각 클라이언트의 월드상의 아이템과 시야기준으로 툴팁 표시 
-void ABasicCharacter::CheckItem()
-{
-	if (InteractionItemList.Num() > 0)
-	{
-		FVector Location = GetSightLocation();
 
-		int Index = GetClosestItem(Location);
-
-		if (Index != -1)
-		{
-			ABasicPC* PC = Cast<ABasicPC>(GetController());
-			if (PC)
-			{
-				PC->SetItemToolTipName(InteractionItemList[Index]->ItemData.ItemName);
-				PC->ShowItemToolTip(true);
-			}
-		}
-	}
-}
 
 // Called to bind functionality to input
 void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -265,6 +234,26 @@ void ABasicCharacter::IsFire_OnRep()
 	}
 }
 
+void ABasicCharacter::ToggleInventory()
+{
+	ABasicPC* BasicPC = Cast<ABasicPC>(GetController());
+	if (!BasicPC)
+	{
+		return;
+	}
+	BasicPC->ToggleInventory();
+}
+
+void ABasicCharacter::InteractionClose()
+{
+	ABasicPC* BasicPC = Cast<ABasicPC>(GetController());
+	if (!BasicPC)
+	{
+		return;
+	}
+	BasicPC->InteractionClose();
+}
+
 void ABasicCharacter::StartFire()
 {
 	ABasicPC* BasicPC = Cast<ABasicPC>(GetController());
@@ -386,14 +375,21 @@ float ABasicCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Damag
 		CurrentHP -= DamageAmount;
 	}
 
-	// HP는 모두에게 복제가되지만, 바로 일어나지 않으므로 각 클라이언트는 HP_OnRep에서 결과처리게하고
-	HP_OnRep(); // 서버는 바로 처리한다.
-
 	if (CurrentHP <= 0)
 	{
+		CurrentHP = 0;
+		S2A_SetCollisionIgnore();
+		S2A_PlayDeathAnimation();
 
 		ABasicPC* AttackerPC = Cast<ABasicPC>(EventInstigator);
 		ABasicPC* DamagedPC = Cast<ABasicPC>(GetController());
+
+		if (DamagedPC)
+		{	
+			// 드랍 구현
+			DamagedPC->DropInventoryAllItem();
+		}
+
 		if (AttackerPC && DamagedPC)
 		{
 			FString Message = FString::Printf(TEXT("%s가 %s를 죽였습니다."), *AttackerPC->UserID, *DamagedPC->UserID);
@@ -441,254 +437,7 @@ bool ABasicCharacter::IsDead()
 }
 
 
-void ABasicCharacter::AddInteraction(AMasterItem* Item)
-{
-	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	if (!PC || !PC->IsLocalController())
-	{
-		return;
-	}
 
-	InteractionItemList.Add(Item);
-	GetWorld()->GetTimerManager().ClearTimer(ItemCheckHandle);
-	GetWorld()->GetTimerManager().SetTimer(
-		ItemCheckHandle,
-		this,
-		&ABasicCharacter::CheckItem,
-		0.1f,
-		true,
-		0);
-
-	PC->UpdateInventory();
-}
-
-
-void ABasicCharacter::RemoveInteraction(AMasterItem* Item)
-{
-	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	if (!PC || !PC->IsLocalController())
-	{
-		return;
-	}
-
-	InteractionItemList.Remove(Item);
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("%d"), InteractionItemList.Num()));
-
-	if (InteractionItemList.Num() > 0)
-	{
-		FVector Location = GetSightLocation();
-
-		int Index = GetClosestItem(Location);
-
-		if (Index != -1)
-		{
-			if (PC)
-			{
-				PC->SetItemToolTipName(InteractionItemList[Index]->ItemData.ItemName);
-				PC->ShowItemToolTip(true);
-			}
-		}
-	}
-	else
-	{
-		if (PC)
-		{
-			PC->ShowItemToolTip(false);
-		}
-		GetWorld()->GetTimerManager().ClearTimer(ItemCheckHandle);
-	}
-
-	PC->UpdateInventory();
-}
-
-
-//나랑 제일 가까운 아이템 인덱스 가져오기
-int ABasicCharacter::GetClosestItem(FVector SightLocation)
-{
-	float Min = 99999999999.9f;
-	int Index = -1;
-	for (int i = 0; i < InteractionItemList.Num(); ++i)
-	{
-		if (!InteractionItemList[i]->IsValidLowLevel() || InteractionItemList[i]->IsPendingKill())
-			continue;
-
-		float Distance = FVector::Distance(SightLocation, InteractionItemList[i]->GetActorLocation());
-		if (Min > Distance)
-		{
-			Min = Distance;
-			Index = i;
-		}
-	}
-
-	return Index;
-}
-
-FVector ABasicCharacter::GetSightLocation()
-{
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPlayerViewPoint(CameraLocation, CameraRotation);
-
-	//화면 사이즈 구하기
-	int SizeX;
-	int SizeY;
-	UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetViewportSize(SizeX, SizeY);
-
-	//화면상 2D 표적점을 3D 좌표 변환
-	FVector CrosshairWorldPosition;
-	FVector CrosshairWorldDirection;
-
-	UGameplayStatics::GetPlayerController(GetWorld(), 0)->DeprojectScreenPositionToWorld(SizeX / 2, SizeY / 2, CrosshairWorldPosition, CrosshairWorldDirection);
-
-	//광선 시작점과 끝 구하기
-	FVector TraceStart = CameraLocation;
-	FVector TraceEnd = CameraLocation + (CrosshairWorldDirection * 900000.0f);
-
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
-
-	TArray<AActor*> IgnoreActors;
-	IgnoreActors.Add(this);
-
-	FHitResult OutHit;
-	bool bResult = UKismetSystemLibrary::LineTraceSingleForObjects(GetWorld(),
-		TraceStart,
-		TraceEnd,
-		ObjectTypes,
-		false,
-		IgnoreActors,
-		EDrawDebugTrace::None,
-		OutHit,
-		true);
-
-	FVector Result = FVector(0, 0, 0);
-
-	if (bResult)
-	{
-		Result = OutHit.ImpactPoint;
-	}
-
-	return Result;
-
-}
-
-void ABasicCharacter::InteractionClose()
-{
-	FVector Location = GetSightLocation();
-	InteractionIndex(GetClosestItem(Location));
-}
-
-void ABasicCharacter::InteractionIndex(int InteractionIndex)
-{	
-	if (InteractionItemList.Num() <= 0 || InteractionItemList.Num() <= InteractionIndex)
-	{
-		return;
-	}
-	AMasterItem* MasterItem = InteractionItemList[InteractionIndex];
-	if (!MasterItem || MasterItem->IsPendingKill())
-	{
-		return;
-	}
-	C2S_Interaction(MasterItem->ItemSpawnID);
-}
-
-bool ABasicCharacter::C2S_Interaction_Validate(int ItemSpwanID)
-{
-	return true;
-}
-
-void ABasicCharacter::C2S_Interaction_Implementation(int ItemSpwanID)
-{
-	AMasterItem* MasterItem = RandomItemSpawner->GetMasterItem(ItemSpwanID);
-	if (!MasterItem || MasterItem->IsPendingKill())
-	{
-		return;
-	}
-
-	if (!Inventory->CheckAdd(MasterItem->ItemIndex, MasterItem->ItemCount))
-	{
-		return;
-	}
-	UE_LOG(LogClass, Warning, TEXT(__FUNCTION__));
-	// 서버업데이트
-	Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount);
-	
-	// 리플리케이션을 쓰면 모든 클라이언트에 인벤정보가 보내지므로 사용하지않는다.
-	S2C_AddToInventory(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
-
-	RandomItemSpawner->Multicast_DestroyMasterItem(MasterItem->ItemSpawnID);
-}
-void ABasicCharacter::S2C_AddToInventory_Implementation(int ItemSpwanID,int ItemIndex,int ItemCount)
-{
-	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	if (!PC)
-	{
-		return;
-	}
-
-	Inventory->AddItem(ItemIndex, ItemCount);				
-	PC->UpdateInventory();			
-}
-
-void ABasicCharacter::DropItem(int InventoryIndex)
-{
-	int ItemIndex = Inventory->GetItemIndex(InventoryIndex);
-	int ItemCount = Inventory->GetItemCount(InventoryIndex);
-	if (ItemIndex == -1)
-	{
-		return;
-	}
-
-	if (!Inventory->DropItem(InventoryIndex))
-	{
-		return;
-	}	
-
-	ABasicPC* PC = Cast<ABasicPC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	if (PC)
-	{
-		PC->UpdateInventory();
-	}
-
-	C2S_DropItem(InventoryIndex);
-}
-
-bool ABasicCharacter::UseItem(int InventoryIndex)
-{
-	return Inventory->UseItem(InventoryIndex);
-}
-
-void ABasicCharacter::ToggleInventory()
-{
-	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	if (PC)
-	{
-		PC->ToggleInventory();
-	}
-}
-
-bool ABasicCharacter::C2S_DropItem_Validate(int InventoryIndex)
-{
-	return true;
-}
-
-void ABasicCharacter::C2S_DropItem_Implementation(int InventoryIndex)
-{
-	int ItemIndex = Inventory->GetItemIndex(InventoryIndex);
-	int ItemCount = Inventory->GetItemCount(InventoryIndex);
-	if (ItemIndex == -1)
-	{
-		return;
-	}
-
-	if (!Inventory->DropItem(InventoryIndex))
-	{
-		return;
-	}
-	RandomItemSpawner->Multicast_SpawnMasterItem(ItemIndex, ItemCount, GetMesh()->GetComponentLocation() + GetActorForwardVector() * 30.0f);	
-}
 
 void ABasicCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -911,21 +660,16 @@ void ABasicCharacter::S2A_ReloadComplete_Implementation()
 	bIsReload = false;
 }
 
-/*
-void ABasicCharacter::S2A_DestroyMasterItem_Implementation(int SpawnID)
+void ABasicCharacter::S2A_SetCollisionIgnore_Implementation()
 {
-	//RemoveInteraction(SpawnID);  
-	//사라질때 EndOverlap발생되어 인터랙션 제거하고, Iteraction접근은 Valid추가한다. 
-	RandomItemSpawner->DestroyMasterItem(SpawnID);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 }
 
-void ABasicCharacter::S2A_CreateMasterItem_Implementation(int ItemIndex, int ItemCount)
+void ABasicCharacter::S2A_PlayDeathAnimation_Implementation()
 {
-	AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(ItemIndex, ItemCount);
-	MasterItem->SetActorLocationAndRotation(GetMesh()->GetComponentLocation() + GetActorForwardVector() * 30.0f,
-		GetMesh()->GetComponentRotation());
+	FString DeadMontage = FString::Printf(TEXT("Death_%d"), FMath::RandRange(1, 3));
+	PlayAnimMontage(DeadAnimation, 1.0f, FName(*DeadMontage));
 }
-*/
 
 void ABasicCharacter::SetItemSpawner()
 {
@@ -943,22 +687,16 @@ void ABasicCharacter::SetItemSpawner()
 
 void ABasicCharacter::HP_OnRep()
 {
-	if (CurrentHP <= 0)
+	if (!IsLocallyControlled())
 	{
-		CurrentHP = 0;
-		GetMesh()->SetSimulatePhysics(true);
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		//SetLifeSpan(10.0f);
-		//관전자폰 세팅
-		//FString DeadMontage = FString::Printf(TEXT("Death_%d"), FMath::RandRange(1, 3));
-		//PlayAnimMontage(DeadAnimation , 1.0f, FName(*DeadMontage));
-
-		ABasicPC* PC = Cast<ABasicPC>(GetController());
-		if (PC)
-		{
-			PC->bAlive = false;
-			PC->DisableInput(PC);
-		}
+		return;
 	}
-	SetHPBar();
+
+	ABasicPC* PC = Cast<ABasicPC>(GetController());
+	PC->SetHPBar(CurrentHP / MaxHP);
+
+	if (CurrentHP <= 0)
+	{	
+		PC->DisableInput(PC);			
+	}
 }

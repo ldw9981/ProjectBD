@@ -94,11 +94,7 @@ void UInventoryBase::OnClickedLButtonInventory(UItemSlotBase * ItemSlotBase)
 	ABasicPC* PC = Cast<ABasicPC>(GetOwningPlayer());
 	if (PC)
 	{
-		ABasicCharacter* Pawn = Cast<ABasicCharacter>(PC->GetPawn());
-		if (Pawn)
-		{
-			Pawn->UseItem(ItemSlotBase->ArrayIndex);
-		}
+		PC->UseItem(ItemSlotBase->ArrayIndex);	
 	}
 }
 
@@ -109,11 +105,7 @@ void UInventoryBase::OnClickedRButtonInventory(UItemSlotBase * ItemSlotBase)
 	ABasicPC* PC = Cast<ABasicPC>(GetOwningPlayer());
 	if (PC)
 	{
-		ABasicCharacter* Pawn = Cast<ABasicCharacter>(PC->GetPawn());
-		if (Pawn)
-		{
-			Pawn->DropItem(ItemSlotBase->ArrayIndex);
-		}
+		PC->DropItem(ItemSlotBase->ArrayIndex);		
 	}
 }
 
@@ -128,10 +120,6 @@ void UInventoryBase::OnClickedRButtonPickable(UItemSlotBase * ItemSlotBase)
 	ABasicPC* PC = Cast<ABasicPC>(GetOwningPlayer());
 	if (PC)
 	{
-		ABasicCharacter* Pawn = Cast<ABasicCharacter>(PC->GetPawn());
-		if (Pawn)
-		{
-			Pawn->InteractionIndex(ItemSlotBase->ArrayIndex);
-		}
+		PC->InteractionIndex(ItemSlotBase->ArrayIndex);
 	}
 }

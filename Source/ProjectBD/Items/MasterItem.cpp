@@ -5,11 +5,13 @@
 #include "Components/SphereComponent.h"
 #include "Engine/StreamableManager.h"
 #include "Basic/BasicCharacter.h"
+#include "Basic/BasicPC.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "UnrealNetwork.h"
 #include "BDGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMesh.h"
+
 
 // Sets default values
 AMasterItem::AMasterItem()
@@ -50,8 +52,12 @@ void AMasterItem::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	{
 		return;
 	}
-
-	Pawn->AddInteraction(this);	
+	ABasicPC* PC = Cast<ABasicPC>(Pawn->GetController());
+	if (!PC)
+	{
+		return;
+	}
+	PC->AddInteraction(this);
 }
 
 void AMasterItem::OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
@@ -69,8 +75,12 @@ void AMasterItem::OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
 	{
 		return;
 	}
-
-	Pawn->RemoveInteraction(this);
+	ABasicPC* PC = Cast<ABasicPC>(Pawn->GetController());
+	if (!PC)
+	{
+		return;
+	}
+	PC->RemoveInteraction(this);
 }
 
 void AMasterItem::CompleteAsyncLoad()

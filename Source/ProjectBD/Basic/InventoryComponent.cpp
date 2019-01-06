@@ -154,3 +154,8 @@ int UInventoryComponent::GetItemCount(int InventoryIndex)
 	}
 	return ItemList[InventoryIndex].ItemCount;
 }
+
+void UInventoryComponent::ClearItem()
+{
+	ItemList.Reset();
+}

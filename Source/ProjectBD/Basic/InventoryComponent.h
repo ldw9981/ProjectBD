@@ -47,4 +47,6 @@ public:
 
 	int GetItemIndex(int InventoryIndex);
 	int GetItemCount(int InventoryIndex);
+
+	void ClearItem();
 };
