@@ -18,6 +18,7 @@
 #include "Items/RandomItemSpawner.h"
 #include "Engine/GameEngine.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 ABasicPC::ABasicPC()
 {
@@ -31,61 +32,63 @@ void ABasicPC::BeginPlay()
 	Super::BeginPlay();
 	SetItemSpawner();
 	
-	if (IsLocalPlayerController())
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
-		//UI 생성(UMG 블루프린트 클래스를 로딩, 생성)
-		FStringClassReference ItemToolTipClass(TEXT("WidgetBlueprint'/Game/Blueprints/UI/ItemToolTip.ItemToolTip_C'"));
+		return;
+	}
+	//UI 생성(UMG 블루프린트 클래스를 로딩, 생성)
+	FStringClassReference ItemToolTipClass(TEXT("WidgetBlueprint'/Game/Blueprints/UI/ItemToolTip.ItemToolTip_C'"));
 
-		//클래스 로딩 시도
-		UClass* WidgetClass = ItemToolTipClass.TryLoadClass<UItemToolTipBase>();
-		if (WidgetClass) //클래스 로딩 성공
+	//클래스 로딩 시도
+	UClass* WidgetClass = ItemToolTipClass.TryLoadClass<UItemToolTipBase>();
+	if (WidgetClass) //클래스 로딩 성공
+	{
+		//클래스를 인스턴스 만들기
+		ItemToolTip = Cast<UItemToolTipBase>(CreateWidget<UUserWidget>(this, WidgetClass));
+		//화면에 붙이기
+		if (ItemToolTip)
 		{
-			//클래스를 인스턴스 만들기
-			ItemToolTip = Cast<UItemToolTipBase>(CreateWidget<UUserWidget>(this, WidgetClass));
-			//화면에 붙이기
-			if (ItemToolTip)
-			{
-				ItemToolTip->AddToViewport();
-				ItemToolTip->SetVisibility(ESlateVisibility::Collapsed);
-			}
-		}
-
-		FStringClassReference InventoryClass(TEXT("WidgetBlueprint'/Game/Blueprints/UI/Inventory.Inventory_C'"));
-		WidgetClass = InventoryClass.TryLoadClass<UInventoryBase>();
-		if (WidgetClass)
-		{
-			InventoryWidget = Cast<UInventoryBase>(CreateWidget<UUserWidget>(this, WidgetClass));
-			if (InventoryWidget)
-			{
-				InventoryWidget->AddToViewport();
-				InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
-			}
-		}
-
-		if (BattleWidgetClass)
-		{
-			BattleWidget = CreateWidget<UBattleWidgetBase>(this, BattleWidgetClass);
-			if (BattleWidget)
-			{
-				BattleWidget->AddToViewport();
-			}
-		}
-
-		SetInputMode(FInputModeGameOnly());
-		bShowMouseCursor = false;
-
-		UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-		if (GI)
-		{
-			UserID = GI->UserID;
-			C2S_SetUserID(UserID);
+			ItemToolTip->AddToViewport();
+			ItemToolTip->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
+
+	FStringClassReference InventoryClass(TEXT("WidgetBlueprint'/Game/Blueprints/UI/Inventory.Inventory_C'"));
+	WidgetClass = InventoryClass.TryLoadClass<UInventoryBase>();
+	if (WidgetClass)
+	{
+		InventoryWidget = Cast<UInventoryBase>(CreateWidget<UUserWidget>(this, WidgetClass));
+		if (InventoryWidget)
+		{
+			InventoryWidget->AddToViewport();
+			InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+
+	if (BattleWidgetClass)
+	{
+		BattleWidget = CreateWidget<UBattleWidgetBase>(this, BattleWidgetClass);
+		if (BattleWidget)
+		{
+			BattleWidget->AddToViewport();
+		}
+	}
+
+	SetInputMode(FInputModeGameOnly());
+	bShowMouseCursor = false;
+
+	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (GI)
+	{
+		UserID = GI->UserID;
+		C2S_SetUserID(UserID);
+	}
+
 }
 
 void ABasicPC::ShowItemToolTip(bool bShow)
 {
-	if (!IsLocalPlayerController())
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
 		return;
 	}
@@ -106,15 +109,16 @@ void ABasicPC::ShowItemToolTip(bool bShow)
 
 void ABasicPC::SetItemToolTipName(FString ItemName)
 {
-	if (IsLocalPlayerController())
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
-		ItemToolTip->ItemName->SetText(FText::FromString(ItemName));
+		return;
 	}
+	ItemToolTip->ItemName->SetText(FText::FromString(ItemName));
 }
 
 bool ABasicPC::IsShowInventory()
 {
-	if (!IsLocalPlayerController())
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
 		return false;
 	}
@@ -146,7 +150,7 @@ void ABasicPC::ToggleInventory()
 //Data(GI->Inventory) - UI(Widget, InventoryBase, ItemSlotBase) 연결
 void ABasicPC::UpdateInventory()
 {
-	if (!IsLocalPlayerController())
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
 		return;
 	}
@@ -281,7 +285,7 @@ void ABasicPC::SetItemSpawner()
 
 void ABasicPC::AddInteraction(AMasterItem* Item)
 {
-	if (!IsLocalController())
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
 		return;
 	}
@@ -302,7 +306,7 @@ void ABasicPC::AddInteraction(AMasterItem* Item)
 
 void ABasicPC::RemoveInteraction(AMasterItem* Item)
 {
-	if (!IsLocalController())
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
 		return;
 	}
@@ -415,10 +419,19 @@ void ABasicPC::DropInventoryAllItem()
 	TArray<FInventoryItemInfo> ItemList;
 	ItemList = Inventory->ItemList;
 	S2A_ClearInventory();
+
 	for (auto it : ItemList)
 	{
-		RandomItemSpawner->Multicast_SpawnMasterItem(it.ItemIndex,it.ItemIndex,
-			BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+		RandomItemSpawner->Multicast_SpawnMasterItem(it.ItemIndex,it.ItemCount,
+			BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f,false);
+	}
+}
+
+void ABasicPC::SetBattleWidgetAliveCountText(int AliveCount)
+{
+	if (BattleWidget)
+	{
+		BattleWidget->AliveCountData = FString::Printf(TEXT("%d명 생존"), AliveCount);
 	}
 }
 
@@ -556,7 +569,7 @@ void ABasicPC::C2S_DropItem_Implementation(int InventoryIndex)
 	}
 	RandomItemSpawner->Multicast_SpawnMasterItem(ItemIndex,
 		ItemCount,
-		BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+		BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f,true);
 }
 
 //동기화 안함. 각 클라이언트의 월드상의 아이템과 시야기준으로 툴팁 표시 
@@ -577,7 +590,12 @@ void ABasicPC::CheckItem()
 }
 void ABasicPC::SetHPBar(float NewHP)
 {	
-	if (IsLocalPlayerController() && BattleWidget)
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
+	{
+		return;
+	}
+
+	if (BattleWidget)
 	{
 		BattleWidget->HpBarData = NewHP;
 	}

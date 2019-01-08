@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BattleWidgetBase.h"
 #include "Components/ScrollBox.h"
@@ -32,4 +32,9 @@ void UBattleWidgetBase::DeleteTopKillingMessage()
 	{
 		KillingMessage->RemoveChildAt(0);
 	}
+}
+
+void UBattleWidgetBase::SetAliveCountText(int AliveCount)
+{
+	AliveCountData = FString::Printf(TEXT("%d명 생존"), AliveCount);	
 }

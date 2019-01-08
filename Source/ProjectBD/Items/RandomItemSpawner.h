@@ -41,8 +41,8 @@ public:
 	bool DestroyMasterItem(int TargetSpawnID);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_SpawnMasterItem(int ItemIndex, int ItemCount, FVector Location);
-	void Multicast_SpawnMasterItem_Implementation(int ItemIndex, int ItemCount, FVector Location);
+	void Multicast_SpawnMasterItem(int ItemIndex, int ItemCount, FVector Location, bool bVisible);
+	void Multicast_SpawnMasterItem_Implementation(int ItemIndex, int ItemCount, FVector Location,bool bVisible);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_DestroyMasterItem(int TargetSpawnID);

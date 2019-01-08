@@ -27,6 +27,8 @@
 #include "Engine/GameEngine.h"
 #include "Items/MasterItem.h"
 #include "Items/RandomItemSpawner.h"
+#include "Engine/SkeletalMesh.h"
+#include "Engine/StaticMeshActor.h"
 
 // Sets default values
 ABasicCharacter::ABasicCharacter()
@@ -378,8 +380,7 @@ float ABasicCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Damag
 	if (CurrentHP <= 0)
 	{
 		CurrentHP = 0;
-		S2A_SetCollisionIgnore();
-		S2A_PlayDeathAnimation();
+		S2A_Die();
 
 		ABasicPC* AttackerPC = Cast<ABasicPC>(EventInstigator);
 		ABasicPC* DamagedPC = Cast<ABasicPC>(GetController());
@@ -640,7 +641,6 @@ void ABasicCharacter::S2A_FireEffect_Implementation(FName InSocketName)
 	UGameplayStatics::SpawnSoundAtLocation(GetWorld(), FireSound,
 		Weapon->GetSocketLocation(InSocketName),
 		Weapon->GetSocketRotation(InSocketName));
-
 }
 
 bool ABasicCharacter::C2S_Reload_Validate()
@@ -660,15 +660,28 @@ void ABasicCharacter::S2A_ReloadComplete_Implementation()
 	bIsReload = false;
 }
 
-void ABasicCharacter::S2A_SetCollisionIgnore_Implementation()
+void ABasicCharacter::S2A_Die_Implementation()
 {
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-}
-
-void ABasicCharacter::S2A_PlayDeathAnimation_Implementation()
-{
 	FString DeadMontage = FString::Printf(TEXT("Death_%d"), FMath::RandRange(1, 3));
 	PlayAnimMontage(DeadAnimation, 1.0f, FName(*DeadMontage));
+
+	if (ItemBox!=nullptr)
+	{
+		GetWorld()->SpawnActor<AStaticMeshActor>(ItemBox, GetMesh()->GetComponentLocation(), GetMesh()->GetComponentRotation());
+	}
+	else
+	{
+		UE_LOG(LogClass, Warning, TEXT("ItemBox is null"));
+	}
+	
+	if (IsLocallyControlled())
+	{
+		ABasicPC* PC = Cast<ABasicPC>(GetController());
+		PC->SetInputMode(FInputModeUIOnly());
+		PC->bShowMouseCursor = true;
+		
+	}
 }
 
 void ABasicCharacter::SetItemSpawner()
@@ -691,12 +704,6 @@ void ABasicCharacter::HP_OnRep()
 	{
 		return;
 	}
-
 	ABasicPC* PC = Cast<ABasicPC>(GetController());
 	PC->SetHPBar(CurrentHP / MaxHP);
-
-	if (CurrentHP <= 0)
-	{	
-		PC->DisableInput(PC);			
-	}
 }

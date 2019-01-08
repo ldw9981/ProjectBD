@@ -9,6 +9,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "BDGameInstance.h"
 #include "UnrealNetwork.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values
 ARandomItemSpawner::ARandomItemSpawner()
@@ -106,10 +107,14 @@ bool ARandomItemSpawner::DestroyMasterItem(int TargetSpawnID)
 	return false;
 }
 
-void ARandomItemSpawner::Multicast_SpawnMasterItem_Implementation(int ItemIndex, int ItemCount,FVector Location)
+void ARandomItemSpawner::Multicast_SpawnMasterItem_Implementation(int ItemIndex, int ItemCount,FVector Location, bool bVisible)
 {
 	AMasterItem* Item = SpawnMasterItem(ItemIndex, ItemCount);
 	Item->SetActorLocation(Location);
+	if (!bVisible)
+	{
+		Item->Mesh->SetVisibility(false);
+	}
 }
 
 

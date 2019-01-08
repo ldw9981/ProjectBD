@@ -16,23 +16,6 @@ public:
 	// Sets default values for this character's properties
 	ABasicCharacter();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	void Reload();
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class USpringArmComponent* SpringArm;
 
@@ -42,20 +25,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UWeaponComponent* Weapon;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
+	class UParticleSystem* MuzzleFlash;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
+	class UParticleSystem* HitEffect;
 
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-	void LookUp(float Value);
-	void Turn(float Value);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
+	class UParticleSystem* BloodEffect;
 
-	void Sprint();
-	void UnSprint();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
+	class USoundBase* FireSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="State", Replicated)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", Replicated)
 	bool bIsSprint = false;
 
-	//float WalkSpeed = 150.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float SprintSpeed = 700;
 
@@ -65,14 +49,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float CrouchSpeed = 150.0f;
 
-	void DoCrouch();
-	void DoIronsight();
-
-	FRotator GetAimOffset() const;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float CapsuleCrouchHalfHeight = 44.0f;
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", Replicated)
 	bool bIsIronsight = false;
@@ -85,6 +63,58 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", ReplicatedUsing = "IsFire_OnRep")
 	bool bIsFire = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", ReplicatedUsing = "HP_OnRep")
+	float CurrentHP;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", ReplicatedUsing = "HP_OnRep")
+	float MaxHP = 100.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	class UAnimMontage* DeadAnimation;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	class UAnimMontage* ReloadAnimation;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", Replicated)
+	bool bIsReload = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", Replicated)
+	bool bLeftLean = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", Replicated)
+	bool bRightLean = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	float LeanAngle = 30.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemBox")
+	TSubclassOf<class AStaticMeshActor> ItemBox;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAcess = true)) // pr
+	class UMaterialInstance*	BulletDecal;
+	class ARandomItemSpawner*	RandomItemSpawner = nullptr;
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+public:	
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void Reload();
+	void MoveForward(float Value);
+	void MoveRight(float Value);
+	void LookUp(float Value);
+	void Turn(float Value);
+	void Sprint();
+	void UnSprint();
+	void DoCrouch();
+	void DoIronsight();
+
+	FRotator GetAimOffset() const;
 	UFUNCTION()
 	void IsFire_OnRep();
 
@@ -100,45 +130,8 @@ public:
 	UFUNCTION()
 	void Client_OnTimerFire();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
-	class UParticleSystem* MuzzleFlash;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
-	class UParticleSystem* HitEffect;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
-	class UParticleSystem* BloodEffect;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Effect")
-	class USoundBase* FireSound;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ItemBox")
-	TSubclassOf<class AStaticMeshActor> ItemBox;
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAcess = true))
-	class UMaterialInstance* BulletDecal;
-
-
-public:
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="State", ReplicatedUsing = "HP_OnRep")
-	float CurrentHP;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", ReplicatedUsing = "HP_OnRep")
-	float MaxHP = 100.0f;
-
 	UFUNCTION()
 	void HP_OnRep();
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	class UAnimMontage* DeadAnimation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	class UAnimMontage* ReloadAnimation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", Replicated)
-	bool bIsReload = false;
 
 	UFUNCTION()
 	void StartLeftLean();
@@ -152,53 +145,32 @@ public:
 	UFUNCTION()
 	void StopRightLean();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", Replicated)
-	bool bLeftLean = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", Replicated)
-	bool bRightLean = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
-	float LeanAngle = 30.0f;
-
 	bool IsDead();
-
-	class ARandomItemSpawner*  RandomItemSpawner=nullptr;
-
-
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void C2S_DoIronsight();
 	bool C2S_DoIronsight_Validate();
 	void C2S_DoIronsight_Implementation();
 
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void C2S_SetSprint(bool Sprint);
 	bool C2S_SetSprint_Validate(bool Sprint);
 	void C2S_SetSprint_Implementation(bool Sprint);
-
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void C2S_SetLeftLean(bool NewLean);
 	bool C2S_SetLeftLean_Validate(bool NewLean);
 	void C2S_SetLeftLean_Implementation(bool NewLean);
 
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void C2S_SetRightLean(bool NewLean);
 	bool C2S_SetRightLean_Validate(bool NewLean);
 	void C2S_SetRightLean_Implementation(bool NewLean);
 
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void C2S_SetFire(bool NewFire);
 	bool C2S_SetFire_Validate(bool NewFire);
 	void C2S_SetFire_Implementation(bool NewFire);
-
-
 
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_SetMaxWalkSpeed(float NewSpeed);
@@ -217,7 +189,6 @@ public:
 	void S2A_HitEffectBlock(FVector Point, FRotator Rotation);
 	void S2A_HitEffectBlock_Implementation(FVector Point, FRotator Rotation);
 
-
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_FireEffect(FName InSocketName);
 	void S2A_FireEffect_Implementation(FName InSocketName);
@@ -232,12 +203,8 @@ public:
 	void S2A_ReloadComplete_Implementation();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void S2A_SetCollisionIgnore();
-	void S2A_SetCollisionIgnore_Implementation();
-
-	UFUNCTION(NetMulticast, Reliable)
-	void S2A_PlayDeathAnimation();
-	void S2A_PlayDeathAnimation_Implementation();
+	void S2A_Die();
+	void S2A_Die_Implementation();
 
 	void SetItemSpawner();
 };

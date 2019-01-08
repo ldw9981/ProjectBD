@@ -18,7 +18,10 @@ public:
 
 	UFUNCTION()
 	void LoginEvent(AGameModeBase * GameMode, APlayerController * NewPlayer);
-	int ReCountAliveCount();
+	UFUNCTION()
+	void LogoutEvent(AGameModeBase* GameMode, AController* Exiting);
+	int CountConnection();
+	int CountAlive();
 
 	bool CheckFinish();
 };

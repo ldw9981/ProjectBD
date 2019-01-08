@@ -11,7 +11,7 @@ void ABattleGS::AliveCount_OnRep()
 	ABasicPC* PC = Cast<ABasicPC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (PC && PC->IsLocalPlayerController())
 	{
-		PC->BattleWidget->AliveCountData = FString::Printf(TEXT("%d명 생존"), AliveCount);
+		PC->SetBattleWidgetAliveCountText(AliveCount);
 	}
 }
 

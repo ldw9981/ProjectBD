@@ -107,4 +107,6 @@ public:
 	FVector GetSightLocation();
 
 	void DropInventoryAllItem();
+
+	void SetBattleWidgetAliveCountText(int AliveCount);
 };

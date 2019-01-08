@@ -30,5 +30,5 @@ public:
 	void AddKillingMessage(const FString & Message);
 
 	void DeleteTopKillingMessage();
-
+	void SetAliveCountText(int AliveCount);
 };
