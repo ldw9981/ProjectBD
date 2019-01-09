@@ -663,6 +663,8 @@ void ABasicCharacter::S2A_ReloadComplete_Implementation()
 void ABasicCharacter::S2A_Die_Implementation()
 {
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+
 	FString DeadMontage = FString::Printf(TEXT("Death_%d"), FMath::RandRange(1, 3));
 	PlayAnimMontage(DeadAnimation, 1.0f, FName(*DeadMontage));
 
