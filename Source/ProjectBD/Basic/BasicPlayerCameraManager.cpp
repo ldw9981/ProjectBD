@@ -74,8 +74,8 @@ void ABasicPlayerCameraManager::UpdateCamera(float DeltaTime)
 			Pawn->SpringArm->bUsePawnControlRotation = false;	// 회전 보간을 사용하기위해 컨트롤러 회전을 사용하지 않도록 수정
 			TargetRotation = -80;
 
-			CurrentRotationSpringArm = FMath::FInterpTo(CurrentRotationSpringArm, TargetRotation, DeltaTime, 3.0f);
-			CurrentPositionSpringArm = FMath::VInterpTo(CurrentPositionSpringArm, TargetPosition, DeltaTime, 3.0f);
+			CurrentRotationSpringArm = FMath::FInterpTo(CurrentRotationSpringArm, TargetRotation, DeltaTime, 1.0f);
+			CurrentPositionSpringArm = FMath::VInterpTo(CurrentPositionSpringArm, TargetPosition, DeltaTime, 1.0f);
 			Pawn->SpringArm->SetRelativeLocation(CurrentPositionSpringArm);
 			Pawn->SpringArm->SetRelativeRotation(FRotator(CurrentRotationSpringArm, 0.0f, 0.0f));
 		}
