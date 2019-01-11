@@ -26,6 +26,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Curve")
 	class UCurveFloat* FloatCurve;
 
+	bool bIsOnCrouch;
 	bool bIsOnIronsight;
 	float TotalTime = 0;
 
@@ -41,5 +42,7 @@ public:
 
 	float CurrentZ;
 
-	FVector CurrentSpringArm;
+	FVector CurrentPositionSpringArm;
+	//FRotator CurrentRotationSpringArm;
+	float CurrentRotationSpringArm=0.0f;
 };

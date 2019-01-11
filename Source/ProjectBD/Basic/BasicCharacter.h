@@ -61,6 +61,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	FVector CrouchSpringPosition;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	FVector DeadSpringPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	FRotator DeadSpringRotator = FRotator(-90.0f,0.0f,0.0f);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", ReplicatedUsing = "IsFire_OnRep")
 	bool bIsFire = false;
 

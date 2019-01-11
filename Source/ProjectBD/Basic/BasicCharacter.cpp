@@ -63,6 +63,7 @@ ABasicCharacter::ABasicCharacter()
 
 	NormalSpringPosition = SpringArm->GetRelativeTransform().GetLocation();
 	CrouchSpringPosition = SpringArm->GetRelativeTransform().GetLocation() - FVector(0, 0, 44);
+	DeadSpringPosition = SpringArm->GetRelativeTransform().GetLocation() + FVector(0, 0, 44*6);
 
 	Tags.Add(TEXT("Player"));
 
@@ -695,8 +696,10 @@ void ABasicCharacter::SetItemSpawner()
 	TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
 	TArray<AActor*> Results;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
-	check(Results.Num() == 1);
-	RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+	if (Results.Num() > 0)
+	{
+		RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+	}
 }
 
 
@@ -707,5 +710,8 @@ void ABasicCharacter::HP_OnRep()
 		return;
 	}
 	ABasicPC* PC = Cast<ABasicPC>(GetController());
-	PC->SetHPBar(CurrentHP / MaxHP);
+	if (PC)
+	{
+		PC->SetHPBar(CurrentHP / MaxHP);
+	}
 }

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BasicPlayerCameraManager.h"
 #include "Basic/BasicCharacter.h"
@@ -65,12 +65,28 @@ void ABasicPlayerCameraManager::UpdateCamera(float DeltaTime)
 		//CurrentZ = FMath::FInterpTo(CurrentZ, TargetZ, DeltaTime, 15.0f);
 		//Pawn->SpringArm->SetRelativeLocation(FVector(0, 0, CurrentZ));
 
-		//Vector º¸°£
-		FVector TargetPosition = Pawn->bIsCrouched ? Pawn->CrouchSpringPosition : Pawn->NormalSpringPosition;
-		CurrentSpringArm = FMath::VInterpTo(CurrentSpringArm, TargetPosition, DeltaTime, 15.0f);
-		Pawn->SpringArm->SetRelativeLocation(CurrentSpringArm);
+		//Vector ë³´ê°„
+		FVector TargetPosition;
+		float TargetRotation = 0.0f;
+		if (Pawn->IsDead())
+		{
+			TargetPosition = Pawn->DeadSpringPosition;			
+			Pawn->SpringArm->bUsePawnControlRotation = false;	// íšŒì „ ë³´ê°„ì„ ì‚¬ìš©í•˜ê¸°ìœ„í•´ ì»¨íŠ¸ë¡¤ëŸ¬ íšŒì „ì„ ì‚¬ìš©í•˜ì§€ ì•Šë„ë¡ ìˆ˜ì •
+			TargetRotation = -80;
 
-
+			CurrentRotationSpringArm = FMath::FInterpTo(CurrentRotationSpringArm, TargetRotation, DeltaTime, 3.0f);
+			CurrentPositionSpringArm = FMath::VInterpTo(CurrentPositionSpringArm, TargetPosition, DeltaTime, 3.0f);
+			Pawn->SpringArm->SetRelativeLocation(CurrentPositionSpringArm);
+			Pawn->SpringArm->SetRelativeRotation(FRotator(CurrentRotationSpringArm, 0.0f, 0.0f));
+		}
+		else
+		{
+			TargetPosition = Pawn->bIsCrouched ? Pawn->CrouchSpringPosition : Pawn->NormalSpringPosition;
+			CurrentPositionSpringArm = FMath::VInterpTo(CurrentPositionSpringArm, TargetPosition, DeltaTime, 15.0f);
+			Pawn->SpringArm->SetRelativeLocation(CurrentPositionSpringArm);
+		}		
+		
+		UE_LOG(LogClass, Warning, TEXT("%f"), TargetRotation = ViewTarget.POV.Rotation.Pitch);
 		if (bIsOnIronsight != Pawn->bIsIronsight)
 		{
 			TotalTime = 0;
@@ -79,13 +95,13 @@ void ABasicPlayerCameraManager::UpdateCamera(float DeltaTime)
 		}
 		TotalTime += DeltaTime;
 		
-		//Ä¿ºê ÀÚ·áÇüÀ» ÀÌ¿ëÇÑ º¸°£
+		//ì»¤ë¸Œ ìžë£Œí˜•ì„ ì´ìš©í•œ ë³´ê°„
 		//float TargetFOV = Pawn->bIsIronsight ? FloatCurve->GetFloatValue(TotalTime) : NormalFOV;
 		//DefaultFOV = TargetFOV;
 		//SetFOV(DefaultFOV);
 		//bIsOnIronsight = Pawn->bIsIronsight;
 
-		//ÀÏ¹ÝÀûÀÎ ¼öÇÐ º¸°£
+		//ì¼ë°˜ì ì¸ ìˆ˜í•™ ë³´ê°„
 		float TargetFOV = Pawn->bIsIronsight ? IronsightFOV : NormalFOV;
 		DefaultFOV = FMath::FInterpTo(DefaultFOV, TargetFOV, DeltaTime, 15.0f);
 		SetFOV(DefaultFOV);
