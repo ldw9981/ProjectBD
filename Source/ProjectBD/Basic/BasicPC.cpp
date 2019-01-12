@@ -284,8 +284,6 @@ void ABasicPC::SetItemSpawner()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
 	check(Results.Num() == 1);
 	RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
-	
-	RandomItemSpawner = ARandomItemSpawner::Instance;
 }
 
 void ABasicPC::AddInteraction(AMasterItem* Item)
@@ -484,6 +482,12 @@ void ABasicPC::InteractionIndex(int InteractionIndex)
 	{
 		return;
 	}
+
+	if (!Inventory->CheckAdd(MasterItem->ItemIndex, MasterItem->ItemCount))
+	{
+		return;
+	}
+
 	C2S_Interaction(MasterItem->ItemSpawnID);
 }
 
@@ -506,7 +510,10 @@ void ABasicPC::C2S_Interaction_Implementation(int ItemSpwanID)
 	}
 	UE_LOG(LogClass, Warning, TEXT(__FUNCTION__));
 	// 서버업데이트
-	Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount);
+	if (!Inventory->AddItem(MasterItem->ItemIndex, MasterItem->ItemCount))
+	{
+		return;
+	}
 
 	// 리플리케이션을 쓰면 모든 클라이언트에 인벤정보가 보내지므로 사용하지않는다.
 	S2C_AddToInventory(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);

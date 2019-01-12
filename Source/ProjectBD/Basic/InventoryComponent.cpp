@@ -120,6 +120,39 @@ bool UInventoryComponent::DropItem(int Index)
 bool UInventoryComponent::CheckAdd(int ItemIndex, int ItemCount)
 {
 	//인벤토리 풀 체크 일단 제한은 없다.
+	//인벤토리 풀 체크
+	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	FItemDataTable& ItemData = GI->GetItemData(ItemIndex);
+	FInventoryItemInfo InventoryItemInfo;
+	InventoryItemInfo.ItemIndex = ItemIndex;
+	InventoryItemInfo.ItemCount = ItemCount;
+
+	if (ItemData.IsOverlapItemType())
+	{
+		int Index = GetSameItemIndex(ItemData);
+		if (Index == -1)
+		{
+			//신규 추가
+
+			//ItemList.Add(InventoryItemInfo);
+		}
+		else
+		{
+			//갯수 증가
+			//ItemList[Index].ItemCount += ItemCount;
+		}
+	}
+	else
+	{
+		// 겹치는 템이 아닌데 오른손 장비가 이미 있으면 실패
+		if (ItemData.ItemEquipType == EEquipType::WeaponRightHand)
+		{
+			if (GetSameItemIndex(ItemData) != -1)
+			{
+				return false;
+			}
+		}
+	}
 	return true;
 }
 

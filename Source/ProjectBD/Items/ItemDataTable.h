@@ -42,7 +42,7 @@ public:
 	EItemType ItemType;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-	EEquipType	ItemEquipSlot;
+	EEquipType	ItemEquipType;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float ItemFloat01;
