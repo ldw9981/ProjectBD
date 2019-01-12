@@ -30,6 +30,7 @@ public:
 	class ARandomItemSpawner*  RandomItemSpawner = nullptr;
 	TArray<class AMasterItem*> InteractionItemList;		// 동기화 안함 클라이언트에서만 사용
 	FTimerHandle ItemCheckHandle;
+	bool bShowInventory=false;
 private:
 	void SetItemSpawner();
 public:

@@ -134,16 +134,18 @@ void ABasicPC::ToggleInventory()
 {
 	if (InventoryWidget->GetVisibility() == ESlateVisibility::Visible)
 	{
+		bShowInventory = false;
 		InventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
 		bShowMouseCursor = false;
 		SetInputMode(FInputModeGameOnly());
 	}
 	else
 	{
+		bShowInventory = true;
 		UpdateInventory();
 		InventoryWidget->SetVisibility(ESlateVisibility::Visible);
 		bShowMouseCursor = true;
-		SetInputMode(FInputModeGameAndUI());
+		SetInputMode(FInputModeGameAndUI());		
 	}
 }
 
@@ -276,11 +278,14 @@ void ABasicPC::SetItemSpawner()
 	{
 		return;
 	}
+	
 	TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
 	TArray<AActor*> Results;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
 	check(Results.Num() == 1);
 	RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+	
+	RandomItemSpawner = ARandomItemSpawner::Instance;
 }
 
 void ABasicPC::AddInteraction(AMasterItem* Item)

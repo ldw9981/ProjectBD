@@ -108,36 +108,20 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ABasicCharacter::MoveRight);
 	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ABasicCharacter::LookUp);
 	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ABasicCharacter::Turn);
-
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &ABasicCharacter::Sprint);
-
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &ABasicCharacter::UnSprint);
-
 	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Pressed, this, &ABasicCharacter::DoCrouch);
-
 	PlayerInputComponent->BindAction(TEXT("Ironsight"), IE_Pressed, this, &ABasicCharacter::DoIronsight);
-
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ABasicCharacter::Jump);
-
 	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Pressed, this, &ABasicCharacter::StartFire);
-
 	PlayerInputComponent->BindAction(TEXT("Fire"), IE_Released, this, &ABasicCharacter::StopFire);
-
 	PlayerInputComponent->BindAction(TEXT("Reload"), IE_Pressed, this, &ABasicCharacter::Reload);
-
-	//기울여서 보기
 	PlayerInputComponent->BindAction(TEXT("LeftLean"), IE_Released, this, &ABasicCharacter::StopLeftLean);
-
 	PlayerInputComponent->BindAction(TEXT("LeftLean"), IE_Pressed, this, &ABasicCharacter::StartLeftLean);
-
 	PlayerInputComponent->BindAction(TEXT("RightLean"), IE_Released, this, &ABasicCharacter::StopRightLean);
-
 	PlayerInputComponent->BindAction(TEXT("RightLean"), IE_Pressed, this, &ABasicCharacter::StartRightLean);
-
 	PlayerInputComponent->BindAction(TEXT("Use"), IE_Pressed, this, &ABasicCharacter::InteractionClose);
-
 	PlayerInputComponent->BindAction(TEXT("ToggleInventory"), IE_Pressed, this, &ABasicCharacter::ToggleInventory);
-
 }
 
 void ABasicCharacter::Reload()
@@ -457,6 +441,11 @@ void ABasicCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 void ABasicCharacter::DoIronsight()
 {
+	ABasicPC* PC = Cast<ABasicPC>(GetController());
+	if (PC->bShowInventory)
+	{
+		return;
+	}	
 	C2S_DoIronsight();
 }
 
@@ -693,13 +682,14 @@ void ABasicCharacter::SetItemSpawner()
 	{
 		return;
 	}
+	
 	TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
 	TArray<AActor*> Results;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
 	if (Results.Num() > 0)
 	{
 		RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
-	}
+	}	
 }
 
 

@@ -84,9 +84,8 @@ void ABasicPlayerCameraManager::UpdateCamera(float DeltaTime)
 			TargetPosition = Pawn->bIsCrouched ? Pawn->CrouchSpringPosition : Pawn->NormalSpringPosition;
 			CurrentPositionSpringArm = FMath::VInterpTo(CurrentPositionSpringArm, TargetPosition, DeltaTime, 15.0f);
 			Pawn->SpringArm->SetRelativeLocation(CurrentPositionSpringArm);
-		}		
+		}				
 		
-		UE_LOG(LogClass, Warning, TEXT("%f"), TargetRotation = ViewTarget.POV.Rotation.Pitch);
 		if (bIsOnIronsight != Pawn->bIsIronsight)
 		{
 			TotalTime = 0;
