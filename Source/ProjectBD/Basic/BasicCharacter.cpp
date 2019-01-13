@@ -373,7 +373,7 @@ float ABasicCharacter::TakeDamage(float DamageAmount, FDamageEvent const & Damag
 		if (DamagedPC)
 		{	
 			// 드랍 구현
-			DamagedPC->DropInventoryAllItem();
+			DamagedPC->DropInventoryByDeath();
 		}
 
 		if (AttackerPC && DamagedPC)

@@ -39,10 +39,7 @@ public:
 	void ShowItemToolTip(bool bShow);
 
 	void SetItemToolTipName(FString ItemName);
-	
-
 	bool IsShowInventory();
-
 	void UpdateInventory();
 
 
@@ -107,7 +104,7 @@ public:
 	int GetClosestItem(FVector SightLocation);
 	FVector GetSightLocation();
 
-	void DropInventoryAllItem();
+	void DropInventoryByDeath();
 
 	void SetBattleWidgetAliveCountText(int AliveCount);
 };

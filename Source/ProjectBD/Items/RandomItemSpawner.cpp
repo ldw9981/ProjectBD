@@ -31,13 +31,14 @@ void ARandomItemSpawner::BeginPlay()
 		TSubclassOf<ARandomItemPoint> RandomItemPointClassType = ARandomItemPoint::StaticClass();
 		TArray<AActor*> Results;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), RandomItemPointClassType, Results);
-
+		UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 		for (auto it : Results)
 		{
 			int ItemIndex = FMath::RandRange(1, 6) * 10;
-			RandomItems.Add(ItemIndex);
+			FItemDataTable& ItemData = GI->GetItemData(ItemIndex);
+			AMasterItem* Item = SpawnMasterItem(ItemData.ItemIndex, ItemData.ItemCount);
+			Item->SetActorTransform(it->GetActorTransform());
 		}
-		Spwan_OnRep();
 	}
 }
 
@@ -48,30 +49,6 @@ void ARandomItemSpawner::Tick(float DeltaTime)
 
 }
 
-void ARandomItemSpawner::Spwan_OnRep()
-{
-	TSubclassOf<ARandomItemPoint> RandomItemPointClassType = ARandomItemPoint::StaticClass();
-	TArray<AActor*> Results;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), RandomItemPointClassType, Results);
-
-	FVector SourceLocation = GetActorLocation();
-	Results.Sort([SourceLocation](const AActor& A, const AActor& B)
-	{
-		float DistanceA = FVector::DistSquared(SourceLocation, A.GetActorLocation());
-		float DistanceB = FVector::DistSquared(SourceLocation, B.GetActorLocation());
-
-		return DistanceA > DistanceB;
-	});
-
-	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	for (int Index = 0; Index < Results.Num(); Index++)
-	{
-		FItemDataTable& ItemData = GI->GetItemData(RandomItems[Index]);	
-		AMasterItem* Item = SpawnMasterItem(ItemData.ItemIndex, ItemData.ItemCount);
-		Item->SetActorTransform(Results[Index]->GetActorTransform());		
-	}
-}
-
 AMasterItem * ARandomItemSpawner::GetMasterItem(int SpawnID)
 {
 	return SpawnItems.FindRef(SpawnID);
@@ -79,9 +56,7 @@ AMasterItem * ARandomItemSpawner::GetMasterItem(int SpawnID)
 
 void ARandomItemSpawner::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(ARandomItemSpawner, RandomItems, COND_InitialOnly);	//COND_InitialOnly - This property will only attempt to send on the initial bunch
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);	
 }
 
 AMasterItem* ARandomItemSpawner::SpawnMasterItem(int ItemIndex, int ItemCount)
@@ -91,7 +66,6 @@ AMasterItem* ARandomItemSpawner::SpawnMasterItem(int ItemIndex, int ItemCount)
 	AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
 	UniqueSpawnID++;
 	SpawnItems.Add(UniqueSpawnID, Item);
-
 	Item->SetItem(UniqueSpawnID,ItemIndex, ItemCount);
 	return Item;
 }
@@ -107,23 +81,4 @@ bool ARandomItemSpawner::DestroyMasterItem(int TargetSpawnID)
 	return false;
 }
 
-void ARandomItemSpawner::Multicast_SpawnMasterItem_Implementation(int ItemIndex, int ItemCount,FVector Location, bool bVisible)
-{
-	AMasterItem* Item = SpawnMasterItem(ItemIndex, ItemCount);
-	Item->SetActorLocation(Location);
-	if (!bVisible)
-	{
-		Item->Mesh->SetVisibility(false);
-	}
-}
-
-
-void ARandomItemSpawner::Multicast_DestroyMasterItem_Implementation(int TargetSpawnID)
-{
-	AMasterItem* Item = Cast<AMasterItem>(SpawnItems.FindAndRemoveChecked(TargetSpawnID));
-	if (Item)
-	{
-		Item->Destroy();		
-	}
-}
 

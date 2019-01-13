@@ -11,7 +11,7 @@
 #include "BDGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMesh.h"
-
+#include "Items/RandomItemSpawner.h"
 
 // Sets default values
 AMasterItem::AMasterItem()
@@ -25,6 +25,8 @@ AMasterItem::AMasterItem()
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(Sphere);
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
@@ -33,7 +35,16 @@ void AMasterItem::BeginPlay()
 	Super::BeginPlay();
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AMasterItem::OnBeginOverlap);
 	Sphere->OnComponentEndOverlap.AddDynamic(this, &AMasterItem::OnEndOverlap);
-	
+		
+}
+
+void AMasterItem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	//COND_InitialOnly - This property will only attempt to send on the initial bunch
+	DOREPLIFETIME_CONDITION(AMasterItem, ItemIndex, COND_InitialOnly);	
+	DOREPLIFETIME_CONDITION(AMasterItem, ItemCount, COND_InitialOnly);	
+	DOREPLIFETIME_CONDITION(AMasterItem, ItemSpawnID, COND_InitialOnly);
 }
 void AMasterItem::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	AActor* OtherActor,
@@ -42,6 +53,11 @@ void AMasterItem::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent,
 	bool bFromSweep,
 	const FHitResult& SweepResult )
 {
+	if (!CheckValid())
+	{
+		return;
+	}
+
 	if (!OtherActor->ActorHasTag(FName(TEXT("Player"))))
 	{
 		return;
@@ -65,6 +81,11 @@ void AMasterItem::OnEndOverlap(UPrimitiveComponent* OverlappedComponent,
 	UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex)
 {
+	if (!CheckValid())
+	{
+		return;
+	}
+
 	if (!OtherActor->ActorHasTag(FName(TEXT("Player"))))
 	{
 		return;
@@ -88,24 +109,30 @@ void AMasterItem::CompleteAsyncLoad()
 	//Mesh->SetStaticMesh(ItemData.ItemMesh);
 }
 
-
-void AMasterItem::ItemIndex_OnRep()
+void AMasterItem::OnRep_ItemIndex()
 {
-	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-
-	if (!GI)
-	{
-		return;
-	}
-	
-	ItemData = GI->GetItemData(ItemIndex);
-	if (ItemData.ItemIndex != 0)
+	if (SetItemData(ItemIndex))
 	{
 		//메시 로딩
-		FStreamableManager Loader;
-		Mesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemMesh));
-		//Loader.RequestAsyncLoad(ItemData.ItemMesh.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(this, &AMasterItem::CompleteAsyncLoad));
+		bool bResult = SetItemStaticMesh();
 	}
+}
+
+bool AMasterItem::SetItemData(int NewItemIndex)
+{
+	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (!GI)
+	{
+		return false;
+	}
+	auto& RetItemData = GI->GetItemData(NewItemIndex);
+	if (RetItemData.ItemIndex == 0)
+	{
+		return false;
+	}
+	ItemData = RetItemData;
+	
+	return true;
 }
 
 // Called every frame
@@ -118,21 +145,34 @@ void AMasterItem::Tick(float DeltaTime)
 
 void AMasterItem::SetItem(int NewSpawnID,int NewItemIndex,int NewItemCount)
 {	
-	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (!GI)
+	if (!SetItemData(NewItemIndex))
 	{
 		return;
 	}
 		
-	ItemSpawnID = NewSpawnID;
-	ItemData = GI->GetItemData(NewItemIndex);
-	if (ItemData.ItemIndex != 0)
-	{
-		ItemIndex = NewItemIndex;
-		//메시 로딩
-		FStreamableManager Loader;
-		Mesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemMesh));
-		//Loader.RequestAsyncLoad(ItemData.ItemMesh.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(this, &AMasterItem::CompleteAsyncLoad));
-	}
+	ItemSpawnID = NewSpawnID;	
+	ItemIndex = NewItemIndex;
 	ItemCount = NewItemCount;
+	//메시 로딩
+	bool bResult = SetItemStaticMesh();
+}
+
+bool AMasterItem::CheckValid()
+{
+	if (ItemIndex == -1 || ItemCount == -1 || ItemSpawnID == -1)
+	{
+		return false;
+	}
+	return true;
+}
+
+bool AMasterItem::SetItemStaticMesh()
+{
+	FStreamableManager Loader;
+	return Mesh->SetStaticMesh(Loader.LoadSynchronous<UStaticMesh>(ItemData.ItemMesh));
+}
+
+void AMasterItem::S2A_SetVisibleHide_Implementation()
+{
+	Mesh->SetVisibility(false);
 }

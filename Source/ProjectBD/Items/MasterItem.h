@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Items/ItemDataTable.h"
+#include "Components/StaticMeshComponent.h"
 #include "MasterItem.generated.h"
+
 
 class UStaticMeshComponent;
 class USphereComponent;
@@ -19,30 +21,15 @@ public:
 	// Sets default values for this actor's properties
 	AMasterItem();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, ReplicatedUsing = "OnRep_ItemIndex")
+	int ItemIndex = -1;
 
-	UFUNCTION()
-	void OnBeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
+	int ItemCount = -1;
 
-	UFUNCTION()
-	void OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Replicated)
+	int ItemSpawnID = -1;
 
-	void CompleteAsyncLoad();
-
-
-	UFUNCTION()
-	void ItemIndex_OnRep();
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int ItemIndex = 10;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int ItemCount = 1;
-	int ItemSpawnID = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FItemDataTable ItemData;
 
@@ -51,6 +38,37 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* Mesh;
+	class ARandomItemSpawner*  RandomItemSpawner = nullptr;
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex);
+
+	void CompleteAsyncLoad();
+
+	UFUNCTION()
+	void OnRep_ItemIndex();
+
+	bool SetItemData(int NewItemIndex);
+	ARandomItemSpawner* GetItemSpawner();
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+
 
 	void SetItem(int NewSpawnID, int NewItemIndex, int NewItemCount);
+
+	bool CheckValid();
+	bool SetItemStaticMesh();
+
+
+	UFUNCTION(NetMulticast, Reliable)
+	void S2A_SetVisibleHide();
+	void S2A_SetVisibleHide_Implementation();
 };

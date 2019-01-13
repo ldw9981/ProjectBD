@@ -411,7 +411,7 @@ FVector ABasicPC::GetSightLocation()
 
 }
 
-void ABasicPC::DropInventoryAllItem()
+void ABasicPC::DropInventoryByDeath()
 {
 	ABasicCharacter* BasicCharacter = Cast<ABasicCharacter>(GetPawn());
 	if (!BasicCharacter)
@@ -425,8 +425,9 @@ void ABasicPC::DropInventoryAllItem()
 
 	for (auto it : ItemList)
 	{
-		RandomItemSpawner->Multicast_SpawnMasterItem(it.ItemIndex,it.ItemCount,
-			BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f,false);
+		AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(it.ItemIndex, it.ItemCount);
+		MasterItem->SetActorLocation(BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+		MasterItem->S2A_SetVisibleHide();
 	}
 }
 
@@ -517,8 +518,9 @@ void ABasicPC::C2S_Interaction_Implementation(int ItemSpwanID)
 
 	// 리플리케이션을 쓰면 모든 클라이언트에 인벤정보가 보내지므로 사용하지않는다.
 	S2C_AddToInventory(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
+	MasterItem->Destroy();
 
-	RandomItemSpawner->Multicast_DestroyMasterItem(MasterItem->ItemSpawnID);
+	//RandomItemSpawner->Multicast_DestroyMasterItem(MasterItem->ItemSpawnID);
 }
 void ABasicPC::S2C_AddToInventory_Implementation(int ItemSpwanID, int ItemIndex, int ItemCount)
 {
@@ -579,9 +581,17 @@ void ABasicPC::C2S_DropItem_Implementation(int InventoryIndex)
 	{
 		return;
 	}
+
+	AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(ItemIndex,ItemCount);
+	if (MasterItem)
+	{
+		MasterItem->SetActorLocation(BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+	}
+	/*
 	RandomItemSpawner->Multicast_SpawnMasterItem(ItemIndex,
 		ItemCount,
 		BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f,true);
+		*/
 }
 
 //동기화 안함. 각 클라이언트의 월드상의 아이템과 시야기준으로 툴팁 표시 
