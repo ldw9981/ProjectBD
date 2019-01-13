@@ -652,8 +652,11 @@ void ABasicCharacter::S2A_ReloadComplete_Implementation()
 
 void ABasicCharacter::S2A_Die_Implementation()
 {
+	// 캡슐은 사용하지만 컬리전 일부 반응을 끄기
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Camera, ECollisionResponse::ECR_Ignore);
+	// 메쉬에 대한 컬리전 끄기
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	FString DeadMontage = FString::Printf(TEXT("Death_%d"), FMath::RandRange(1, 3));
 	PlayAnimMontage(DeadAnimation, 1.0f, FName(*DeadMontage));
