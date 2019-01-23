@@ -61,9 +61,8 @@ void ARandomItemSpawner::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 
 AMasterItem* ARandomItemSpawner::SpawnMasterItem(int ItemIndex, int ItemCount)
 {
-	TSubclassOf<AMasterItem> MasterItemClassType = AMasterItem::StaticClass();
 	FActorSpawnParameters SpawnParms;
-	AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(MasterItemClassType, SpawnParms);
+	AMasterItem* Item = GetWorld()->SpawnActor<AMasterItem>(ItemTypeClass, SpawnParms);
 	UniqueSpawnID++;
 	SpawnItems.Add(UniqueSpawnID, Item);
 	Item->SetItem(UniqueSpawnID,ItemIndex, ItemCount);

@@ -23,6 +23,9 @@ protected:
 
 	TMap<int,class AMasterItem*> SpawnItems;
 	USceneComponent* Scene;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RandomItem")
+	TSubclassOf<class AMasterItem> ItemTypeClass;
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -96,9 +96,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ItemBox")
 	TSubclassOf<class AStaticMeshActor> ItemBox;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bullet")
+	TSubclassOf<class AActor> BulletTypeClass;
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAcess = true)) // pr
-	class UMaterialInstance*	BulletDecal;
 	class ARandomItemSpawner*	RandomItemSpawner = nullptr;
 protected:
 	// Called when the game starts or when spawned
@@ -182,17 +182,9 @@ public:
 	void S2A_SetMaxWalkSpeed_Implementation(float NewSpeed);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void C2S_Fire(FVector TraceStart, FVector TraceEnd);
-	bool C2S_Fire_Validate(FVector TraceStart, FVector TraceEnd);
-	void C2S_Fire_Implementation(FVector TraceStart, FVector TraceEnd);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void S2A_HitEffectBlood(FVector Point,FRotator Rotation);
-	void S2A_HitEffectBlood_Implementation(FVector Point, FRotator Rotation);
-
-	UFUNCTION(NetMulticast, Reliable)
-	void S2A_HitEffectBlock(FVector Point, FRotator Rotation);
-	void S2A_HitEffectBlock_Implementation(FVector Point, FRotator Rotation);
+	void C2S_Fire(FVector TraceStart, FVector TraceEnd, FVector MuzzleLocation, FRotator MuzzleRotator);
+	bool C2S_Fire_Validate(FVector TraceStart, FVector TraceEnd, FVector MuzzleLocation, FRotator MuzzleRotator);
+	void C2S_Fire_Implementation(FVector TraceStart, FVector TraceEnd, FVector MuzzleLocation, FRotator MuzzleRotator);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_FireEffect(FName InSocketName);

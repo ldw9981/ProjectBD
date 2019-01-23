@@ -34,8 +34,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
-	float Damage = 1.0f;
+	
 
-	float GetDamage();
+
 
 };

@@ -38,6 +38,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStaticMeshComponent* Mesh;
+
 	class ARandomItemSpawner*  RandomItemSpawner = nullptr;
 protected:
 	// Called when the game starts or when spawned

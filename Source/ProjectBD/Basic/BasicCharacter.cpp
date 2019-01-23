@@ -1,34 +1,34 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BasicCharacter.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
-#include "Components/InputComponent.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Basic/WeaponComponent.h"
+#include "Components/DecalComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/InputComponent.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
+#include "UnrealNetwork.h"
+#include "Engine/GameEngine.h"
+#include "Engine/SkeletalMesh.h"
+#include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "Materials/MaterialInstance.h"
-#include "Components/DecalComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Basic/MyCameraShake.h"
 #include "Basic/BulletDamageType.h"
-#include "Items/MasterItem.h"
 #include "Basic/BasicPC.h"
+#include "Basic/BulletActor.h"
+#include "Basic/WeaponComponent.h"
 #include "BDGameInstance.h"
 #include "Battle/BattleWidgetBase.h"
-#include "UnrealNetwork.h"
 #include "Battle/BattleGM.h"
 #include "InventoryComponent.h"
 #include "Items/RandomItemSpawner.h"
-#include "Engine/GameEngine.h"
 #include "Items/MasterItem.h"
-#include "Items/RandomItemSpawner.h"
-#include "Engine/SkeletalMesh.h"
-#include "Engine/StaticMeshActor.h"
+#include "GameFramework/Actor.h"
 
 // Sets default values
 ABasicCharacter::ABasicCharacter()
@@ -296,15 +296,12 @@ void ABasicCharacter::Client_OnTimerFire()
 	int RandX = FMath::RandRange(-10, 10);
 	int RandY = FMath::RandRange(0, 10);
 
-	UGameplayStatics::GetPlayerController(GetWorld(), 0)->DeprojectScreenPositionToWorld(SizeX / 2 + RandX, SizeY / 2 + RandY, CrosshairWorldPosition, CrosshairWorldDirection);
+	UGameplayStatics::GetPlayerController(GetWorld(), 0)->DeprojectScreenPositionToWorld(SizeX / 2 , SizeY / 2 , CrosshairWorldPosition, CrosshairWorldDirection);
 
 	//광선 시작점과 끝 구하기
-	FVector TraceStart = CameraLocation;
+	FVector TraceStart = CameraLocation;//Weapon->GetSocketLocation(TEXT("MuzzleFlash"));
 	FVector TraceEnd = CameraLocation + (CrosshairWorldDirection * 900000.0f);
-
-
-	C2S_Fire(TraceStart, TraceEnd);
-
+	C2S_Fire(TraceStart, TraceEnd, Weapon->GetSocketLocation(TEXT("MuzzleFlash")), Weapon->GetSocketRotation(TEXT("MuzzleFlash")));
 	//UE_LOG(LogClass, Warning, TEXT("%d %f %s"), int, float, *FString);
 
 	//총구 방향 변경
@@ -506,23 +503,20 @@ void ABasicCharacter::S2A_SetMaxWalkSpeed_Implementation(float NewSpeed)
 	GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
 }
 
-bool ABasicCharacter::C2S_Fire_Validate(FVector TraceStart, FVector TraceEnd)
+bool ABasicCharacter::C2S_Fire_Validate(FVector TraceStart, FVector TraceEnd, FVector MuzzleLocation, FRotator MuzzleRotator)
 {
 	return true;
 }
 
-void ABasicCharacter::C2S_Fire_Implementation(FVector TraceStart, FVector TraceEnd)
+void ABasicCharacter::C2S_Fire_Implementation(FVector TraceStart, FVector TraceEnd, FVector MuzzleLocation,FRotator MuzzleRotator)
 {
 	if (!Weapon->UseBullet())
 	{
 		bIsFire = false;
 		return;
-	}
+	}	
 
 	S2A_FireEffect(TEXT("MuzzleFlash"));
-
-	//enum class EObjectType
-//vector<ObjectType> objectType;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
@@ -540,86 +534,40 @@ void ABasicCharacter::C2S_Fire_Implementation(FVector TraceStart, FVector TraceE
 		ObjectTypes,
 		true,
 		IgnoreActors,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForDuration,
 		OutHit,
 		true,
 		FLinearColor::Red,
 		FLinearColor::Green,
 		30.0f
-	);
+	);	
 
-
-	//총알이 어디에 맞으면 총구에서 다시 검사.
-	//맞긴 맞은건데 이 위치가 맞는지 확인
-	if (Result)
+	if (!Result)
 	{
-		UE_LOG(LogClass, Warning, TEXT("MuzzleFlash."));
-		//총구 끝에서 충돌지점까지 재 검사
-		TraceStart = Weapon->GetSocketLocation(TEXT("MuzzleFlash"));
-		FVector Dir = OutHit.ImpactPoint - TraceStart;
-		TraceEnd = TraceStart + (Dir * 1.1f);
+		return;
+	}
 
-		Result = UKismetSystemLibrary::LineTraceSingleForObjects(
-			GetWorld(),
-			TraceStart,
-			TraceEnd,
-			ObjectTypes,
-			true,
-			IgnoreActors,
-			EDrawDebugTrace::ForDuration,
-			OutHit,
-			true,
-			FLinearColor::Red,
-			FLinearColor::Green,
-			30.0f
-		);
+	if (BulletTypeClass)
+	{
+		FActorSpawnParameters Param;
+		Param.Instigator = this;
+		Param.Owner = this;		
 
-		if (Result)
-		{
-			if (OutHit.GetActor()->ActorHasTag(TEXT("Player")))
-			{
-				UE_LOG(LogClass, Warning, TEXT("Player."));
-				//점 데미지
-				UGameplayStatics::ApplyPointDamage(OutHit.GetActor(),
-					Weapon->GetDamage(),
-					TraceEnd - TraceStart,
-					OutHit,
-					GetController(),
-					this,
-					UBulletDamageType::StaticClass()
-				);
+		FVector ForwardVector = FVector(OutHit.Location - MuzzleLocation).GetUnsafeNormal();
+		FVector UpVector = ForwardVector.ToOrientationQuat().GetUpVector();
+		FVector RightVector = ForwardVector.ToOrientationQuat().GetRightVector();
 
-				S2A_HitEffectBlood(OutHit.ImpactPoint, OutHit.ImpactNormal.Rotation());
-			}
-			else
-			{
-				S2A_HitEffectBlock(OutHit.ImpactPoint, OutHit.ImpactNormal.Rotation());
-			}
-
-		}
+		AActor* BulletActor = GetWorld()->SpawnActor<AActor>(BulletTypeClass,
+			MuzzleLocation,
+			UKismetMathLibrary::MakeRotationFromAxes(ForwardVector, RightVector, UpVector),
+			Param);
+	
+		//**** 스폰 이후 설정은 오작동을 일으킨다... 데디 서버에서 Hit검충 오작동 
+		//BulletActor->SetActorLocationAndRotation(MuzzleLocation, GetActorRotation());
 	}
 }
 
-void ABasicCharacter::S2A_HitEffectBlood_Implementation(FVector Point, FRotator Rotation)
-{
-	//HitEffect
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodEffect, Point, Rotation);
-}
 
-void ABasicCharacter::S2A_HitEffectBlock_Implementation(FVector Point, FRotator Rotation)
-{
-	UDecalComponent* BulletDecalComponent = UGameplayStatics::SpawnDecalAtLocation(GetWorld(),
-		BulletDecal,
-		FVector(5, 5, 5),
-		Point,
-		Rotation,
-		10.0f
-	);
-	BulletDecalComponent->SetFadeScreenSize(0.005f);
-
-	//HitEffect
-	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HitEffect, Point, Rotation);
-}
 
 void ABasicCharacter::S2A_FireEffect_Implementation(FName InSocketName)
 {

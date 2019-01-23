@@ -267,8 +267,12 @@ void ABasicPC::S2A_DropItemAll_Implementation()
 		{
 			continue;
 		}
-		AMasterItem* Item = RandomItemSpawner->SpawnMasterItem(ItemIndex,ItemCount);
-		Item->SetActorLocation(BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+
+		if (RandomItemSpawner)
+		{
+			AMasterItem* Item = RandomItemSpawner->SpawnMasterItem(ItemIndex, ItemCount);
+			Item->SetActorLocation(BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+		}
 	}
 }
 
@@ -282,8 +286,10 @@ void ABasicPC::SetItemSpawner()
 	TSubclassOf<ARandomItemSpawner> ClassType = ARandomItemSpawner::StaticClass();
 	TArray<AActor*> Results;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ClassType, Results);
-	check(Results.Num() == 1);
-	RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+	if (Results.Num() == 1)
+	{
+		RandomItemSpawner = Cast<ARandomItemSpawner>(Results[0]);
+	}
 }
 
 void ABasicPC::AddInteraction(AMasterItem* Item)
@@ -425,9 +431,12 @@ void ABasicPC::DropInventoryByDeath()
 
 	for (auto it : ItemList)
 	{
-		AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(it.ItemIndex, it.ItemCount);
-		MasterItem->SetActorLocation(BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
-		MasterItem->S2A_SetVisibleHide();
+		if (RandomItemSpawner)
+		{
+			AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(it.ItemIndex, it.ItemCount);
+			MasterItem->SetActorLocation(BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+			MasterItem->S2A_SetVisibleHide();
+		}
 	}
 }
 
@@ -499,6 +508,11 @@ bool ABasicPC::C2S_Interaction_Validate(int ItemSpwanID)
 
 void ABasicPC::C2S_Interaction_Implementation(int ItemSpwanID)
 {
+	if (!RandomItemSpawner)
+	{
+		return;
+	}
+
 	AMasterItem* MasterItem = RandomItemSpawner->GetMasterItem(ItemSpwanID);
 	if (!MasterItem || MasterItem->IsPendingKill())
 	{
@@ -582,10 +596,13 @@ void ABasicPC::C2S_DropItem_Implementation(int InventoryIndex)
 		return;
 	}
 
-	AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(ItemIndex,ItemCount);
-	if (MasterItem)
+	if (RandomItemSpawner)
 	{
-		MasterItem->SetActorLocation(BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+		AMasterItem* MasterItem = RandomItemSpawner->SpawnMasterItem(ItemIndex, ItemCount);
+		if (MasterItem)
+		{
+			MasterItem->SetActorLocation(BasicCharacter->GetMesh()->GetComponentLocation() + BasicCharacter->GetActorForwardVector() * 30.0f);
+		}
 	}
 	/*
 	RandomItemSpawner->Multicast_SpawnMasterItem(ItemIndex,

@@ -12,11 +12,6 @@ void UWeaponComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-float UWeaponComponent::GetDamage()
-{
-	return Damage;
-}
-
 void UWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
