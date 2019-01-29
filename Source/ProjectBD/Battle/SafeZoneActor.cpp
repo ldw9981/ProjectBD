@@ -26,15 +26,11 @@ ASafeZoneActor::ASafeZoneActor()
 	SetRootComponent(Mesh);
 
 	bReplicates = true;
-	
-	TargetRadius = 1000;
-	SetRadius(TargetRadius);
-	SetActorLocation(FVector(0, 0, 0));
 }
 
 // Called when the game starts or when spawned
 void ASafeZoneActor::BeginPlay()
-{
+{	
 	Super::BeginPlay();
 	if (UKismetSystemLibrary::IsServer(GetWorld()))
 	{
@@ -47,7 +43,8 @@ void ASafeZoneActor::BeginPlay()
 			true,
 			0);	
 	}
-		
+	
+	SetRadius(InitialRadius);
 }
 
 // Called every frame
@@ -55,7 +52,7 @@ void ASafeZoneActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (PhazeTime <= 0.0f || TargetRadius <= 1.0f)
+	if (PhazeTime <= 0.0f || CurrentRadius <= 1.0f)
 	{
 		return;
 	}
@@ -63,8 +60,10 @@ void ASafeZoneActor::Tick(float DeltaTime)
 	PhazeTime -= DeltaTime;
 	if (bZoneMove)
 	{
-		CurrentRadius = FMath::FInterpTo(CurrentRadius, TargetRadius, DeltaTime, InterpSpeed);
+		CurrentRadius = FMath::FInterpConstantTo(CurrentRadius, TargetRadius, DeltaTime, InterpSpeedRadius);
+		CurrentCenter = FMath::VInterpConstantTo(CurrentCenter, TargetCenter, DeltaTime, InterpSpeedCenter);
 		SetRadius(CurrentRadius);
+		SetActorLocation(CurrentCenter);
 	}
 
 	if (PhazeTime <= 0.0f)
@@ -75,12 +74,15 @@ void ASafeZoneActor::Tick(float DeltaTime)
 		{
 			if (!bZoneMove)
 			{
-				TargetRadius = TargetRadius * 0.5f;
-				S2A_SetZoneMovePhaze(5, TargetRadius);				
+				float PrevRadius = CurrentRadius;
+				float NewRadius = CurrentRadius * 0.75f;
+				FVector NewCenter = GetRandomLocationInRadius(CurrentCenter, PrevRadius-NewRadius);
+
+				S2A_SetZoneMovePhaze(120, NewCenter, NewRadius);
 			}
 			else
 			{
-				S2A_SetWaitPhaze(5);
+				S2A_SetWaitPhaze(120);
 			}
 		}
 	}
@@ -121,25 +123,39 @@ void ASafeZoneActor::PainOutside()
 			continue;
 		}
 
-		//점 데미지
-		UGameplayStatics::ApplyDamage(Character, 10, nullptr, this, UBulletDamageType::StaticClass());
+		UGameplayStatics::ApplyDamage(Character, 1, nullptr, this, UBulletDamageType::StaticClass());
 	}
 
 }
 
 
 
-void ASafeZoneActor::S2A_SetZoneMovePhaze_Implementation(float NewPageTime, float NewTargetRadius)
+void ASafeZoneActor::S2A_SetZoneMovePhaze_Implementation(float NewPageTime, FVector NewCenter, float NewTargetRadius)
 {
 	bZoneMove = true;
 	PhazeTime = NewPageTime;
 	TargetRadius = NewTargetRadius;
-	InterpSpeed = PhazeTime / TargetRadius;
+	TargetCenter = NewCenter;
+	
+	InterpSpeedRadius = (CurrentRadius - TargetRadius) / PhazeTime;		// 1초에 줄어야할 반지름 크기
+	//UE_LOG(LogClass, Warning, TEXT(" %f, %f , %f"), CurrentRadius, TargetRadius, PhazeTime);
+	InterpSpeedCenter = FVector(TargetCenter - CurrentCenter).Size()/ PhazeTime;	//1초에 이동해야할 크기
+//	UE_LOG(LogClass, Warning, TEXT("InterpSpeedRadius %f,InterpSpeedCenter %f"), InterpSpeedRadius, InterpSpeedCenter);
 }
 
 void ASafeZoneActor::S2A_SetWaitPhaze_Implementation(float NewPageTime)
 {
 	bZoneMove = false;
 	PhazeTime = NewPageTime;
+}
+
+FVector ASafeZoneActor::GetRandomLocationInRadius(const FVector & Origin,const float Radius)
+{
+	const float RandomAngle = 2.f * PI * FMath::FRand();
+	const float U = FMath::FRand() + FMath::FRand();
+	const float RandomRadius = Radius * (U > 1 ? 2.f - U : U);
+	const FVector RandomOffset(FMath::Cos(RandomAngle) * RandomRadius, FMath::Sin(RandomAngle) * RandomRadius, 0);
+	FVector RandomLocationInRadius = Origin + RandomOffset;
+	return RandomLocationInRadius;
 }
 

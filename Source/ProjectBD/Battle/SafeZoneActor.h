@@ -18,11 +18,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Component")
 	class UStaticMeshComponent* Mesh;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Initial")
+	float InitialRadius = 10000;
+
 	float Scale1Unit = 0.02;
 	float CurrentRadius = 0.0f;
 	float TargetRadius = 0.0f;
-	float InterpSpeed = 0.0f;
-	float PhazeTime = 5.0f;	
+	FVector TargetCenter;
+	FVector CurrentCenter;
+	float InterpSpeedRadius = 0.0f;
+	float InterpSpeedCenter = 0.0f;
+	float PhazeTime = 5.0f;
 	bool bZoneMove = false;
 
 	FTimerHandle PainTimer;
@@ -38,11 +44,12 @@ public:
 	void PainOutside();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void S2A_SetZoneMovePhaze(float NewPageTime, float NewTargetRadius);
-	void S2A_SetZoneMovePhaze_Implementation(float NewPageTime, float NewTargetRadius);
+	void S2A_SetZoneMovePhaze(float NewPageTime, FVector NewCenter, float NewTargetRadius);
+	void S2A_SetZoneMovePhaze_Implementation(float NewPageTime, FVector NewCenter, float NewTargetRadius);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void S2A_SetWaitPhaze(float NewPageTime);
 	void S2A_SetWaitPhaze_Implementation(float NewPageTime);
 
+	FVector GetRandomLocationInRadius(const FVector & Origin, const float Radius);
 };
