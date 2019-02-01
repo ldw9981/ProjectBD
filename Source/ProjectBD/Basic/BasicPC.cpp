@@ -19,6 +19,7 @@
 #include "Engine/GameEngine.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Basic/WeaponComponent.h"
 
 ABasicPC::ABasicPC()
 {
@@ -530,6 +531,11 @@ void ABasicPC::C2S_Interaction_Implementation(int ItemSpwanID)
 		return;
 	}
 
+	if (MasterItem->ItemData.ItemType == EItemType::Ammo)
+	{
+		Inventory->AddExtraBullet(MasterItem->ItemData.ItemCount);		
+	}
+
 	// 리플리케이션을 쓰면 모든 클라이언트에 인벤정보가 보내지므로 사용하지않는다.
 	S2C_AddToInventory(MasterItem->ItemSpawnID, MasterItem->ItemIndex, MasterItem->ItemCount);
 	MasterItem->Destroy();
@@ -591,9 +597,17 @@ void ABasicPC::C2S_DropItem_Implementation(int InventoryIndex)
 		return;
 	}
 
+	FItemDataTable& ItemData = Inventory->GetItemData(InventoryIndex);
+
+
 	if (!Inventory->DropItem(InventoryIndex))
 	{
 		return;
+	}
+
+	if (ItemData.ItemType == EItemType::Ammo)
+	{		
+		Inventory->AddExtraBullet(-ItemCount);		
 	}
 
 	if (RandomItemSpawner)
@@ -637,5 +651,19 @@ void ABasicPC::SetHPBar(float NewHP)
 	if (BattleWidget)
 	{
 		BattleWidget->HpBarData = NewHP;
+	}
+}
+
+void ABasicPC::UI_UpdateBullet(int Bullet, int ExtraBullet)
+{
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
+	{
+		return;
+	}
+
+	if (BattleWidget)
+	{
+		BattleWidget->SetTextBullet(Bullet);
+		BattleWidget->SetTextExtraBullet(ExtraBullet);
 	}
 }

@@ -18,24 +18,6 @@ class PROJECTBD_API UWeaponComponent : public UStaticMeshComponent
 public:
 	UWeaponComponent();
 
-	int BulletPerMagazine = 30; // 한탄창에 들어가는 총알 수
-	int BulletCountinMagazine = 30;  //현재 탄창에 있는 총알 수
-	int TotalBulletCount = 120; // 전체 총알수
-
-	//현재 총알이 있는지 확인
-	bool IsHaveBullet();
-
-	//재장전 완료
-	void ReloadComplete();
-
-	//총알 사용
-	bool UseBullet();
-
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
-
-	
-
-
-
 };

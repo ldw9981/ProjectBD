@@ -1,10 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BasicAnimInstance.h"
 #include "Basic/BasicCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Basic/BasicPC.h"
 #include "Basic/WeaponComponent.h"
+#include "Basic/InventoryComponent.h"
 
 void UBasicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
@@ -22,7 +24,7 @@ void UBasicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsSprint = Pawn->bIsSprint;
 		bIsCrouched = Pawn->bIsCrouched;
 
-		//ÃÑ±¸ ¹æÇâ
+		//ì´êµ¬ ë°©í–¥
 		FRotator AimRotator = Pawn->GetAimOffset();
 		AimPitch = AimRotator.Pitch;
 		AimYaw = AimRotator.Yaw;
@@ -33,7 +35,7 @@ void UBasicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		bIsFire = Pawn->bIsFire;
 
-		//ÀçÀåÀü
+		//ìž¬ìž¥ì „
 		bIsReload = Pawn->bIsReload;
 		if (bIsReload)
 		{
@@ -44,7 +46,7 @@ void UBasicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			}
 		}
 
-		//±â¿ïÀÌ±â
+		//ê¸°ìš¸ì´ê¸°
 		bLeftLean = Pawn->bLeftLean;
 		bRightLean = Pawn->bRightLean;
 		float TargetAngle = 0;
@@ -72,7 +74,15 @@ void UBasicAnimInstance::AnimNotify_ReloadComplete(UAnimNotify* Notify)
 	ABasicCharacter* Pawn = Cast<ABasicCharacter>(TryGetPawnOwner());
 	if (Pawn && Pawn->IsValidLowLevel())
 	{
-		Pawn->Weapon->ReloadComplete();
+		if (GetWorld()->IsServer())
+		{
+			ABasicPC* BasicPC = Cast<ABasicPC>(Pawn->GetController());
+			if (BasicPC)
+			{
+				BasicPC->Inventory->ReloadComplete();
+			}
+			
+		}
 		bIsReload = false; 
 		Pawn->bIsReload = false;
 	}

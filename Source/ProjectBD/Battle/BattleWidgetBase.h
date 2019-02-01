@@ -18,6 +18,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float HpBarData;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FString TextBullet;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FString TextExtraBullet;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	FString AliveCountData;
@@ -31,4 +36,6 @@ public:
 
 	void DeleteTopKillingMessage();
 	void SetAliveCountText(int AliveCount);
+	void SetTextBullet(int Bullet);
+	void SetTextExtraBullet(int ExtraBullet);
 };

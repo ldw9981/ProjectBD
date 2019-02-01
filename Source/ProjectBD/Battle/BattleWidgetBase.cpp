@@ -9,6 +9,9 @@ void UBattleWidgetBase::NativeConstruct()
 	Super::NativeConstruct();
 
 	KillingMessage = Cast<UScrollBox>(GetWidgetFromName(TEXT("KillingMessage")));
+
+	SetTextBullet(0);
+	SetTextExtraBullet(0);
 }
 
 void UBattleWidgetBase::AddKillingMessage(const FString& Message)
@@ -37,4 +40,14 @@ void UBattleWidgetBase::DeleteTopKillingMessage()
 void UBattleWidgetBase::SetAliveCountText(int AliveCount)
 {
 	AliveCountData = FString::Printf(TEXT("%d명 생존"), AliveCount);	
+}
+
+void UBattleWidgetBase::SetTextBullet(int Bullet)
+{
+	TextBullet = FString::Printf(TEXT("%d"), Bullet);
+}
+
+void UBattleWidgetBase::SetTextExtraBullet(int ExtraBullet)
+{
+	TextExtraBullet = FString::Printf(TEXT("%d"), ExtraBullet);
 }

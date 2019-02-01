@@ -267,14 +267,19 @@ void ABasicCharacter::Client_OnTimerFire()
 	{
 		return;
 	}
-	if (!Weapon->IsHaveBullet())
+
+	ABasicPC* BasicPC = Cast<ABasicPC>(GetController());
+	if (!BasicPC)
+	{
+		return;
+	}
+
+	if (!BasicPC->Inventory->IsExistLoadedBullet())
 	{
 		//빈총 소리
 		C2S_SetFire(false);
 		return;
 	}
-
-	UE_LOG(LogClass, Warning, TEXT("Bullet %d %d"), Weapon->BulletCountinMagazine, Weapon->TotalBulletCount);
 
 	//총알 발사 계산
 	//UE_LOG(LogClass, Warning, TEXT("OnFire"));
@@ -509,12 +514,20 @@ bool ABasicCharacter::C2S_Fire_Validate(FVector TraceStart, FVector TraceEnd, FV
 }
 
 void ABasicCharacter::C2S_Fire_Implementation(FVector TraceStart, FVector TraceEnd, FVector MuzzleLocation,FRotator MuzzleRotator)
-{
-	if (!Weapon->UseBullet())
+{	
+	ABasicPC* BasicPC = Cast<ABasicPC>(GetController());
+	if (!BasicPC)
+	{
+		return;
+	}
+	
+	if (!BasicPC->Inventory->IsExistLoadedBullet())
 	{
 		bIsFire = false;
 		return;
 	}	
+
+	BasicPC->Inventory->S2A_UseBullet();
 
 	S2A_FireEffect(TEXT("MuzzleFlash"));
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
@@ -594,7 +607,13 @@ void ABasicCharacter::C2S_Reload_Implementation()
 
 void ABasicCharacter::S2A_ReloadComplete_Implementation()
 {
-	Weapon->ReloadComplete();
+	ABasicPC* BasicPC = Cast<ABasicPC>(GetController());
+	if (!BasicPC)
+	{
+		return;
+	}
+
+	BasicPC->Inventory->ReloadComplete();
 	bIsReload = false;
 }
 
@@ -655,4 +674,5 @@ void ABasicCharacter::HP_OnRep()
 	{
 		PC->SetHPBar(CurrentHP / MaxHP);
 	}
+
 }

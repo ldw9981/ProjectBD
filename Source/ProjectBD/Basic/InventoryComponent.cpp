@@ -4,6 +4,9 @@
 #include "BDGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
+#include "UnrealNetwork.h"
+#include "Basic/BasicCharacter.h"
+#include "Basic/BasicPC.h"
 
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
@@ -11,7 +14,7 @@ UInventoryComponent::UInventoryComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	bReplicates = true;
 	// ...
 }
 
@@ -23,6 +26,14 @@ void UInventoryComponent::BeginPlay()
 
 	// ...
 	
+}
+
+void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UInventoryComponent, LoadedBullet);
+	DOREPLIFETIME(UInventoryComponent, ExtraBullet);
 }
 
 
@@ -48,9 +59,19 @@ bool UInventoryComponent::AddItem(int ItemIndex, int ItemCount)
 		int Index = GetSameItemIndex(ItemData);
 		if (Index == -1)
 		{
-			//신규 추가
-			
-			ItemList.Add(InventoryItemInfo);
+			//신규 추가			
+			Index = ItemList.Add(InventoryItemInfo);
+			switch (ItemData.ItemType)
+			{
+			case EItemType::Ammo:
+				BulletIndex = Index;				
+				break;
+			case EItemType::Grenade:
+				GrenadeIndex = Index;
+				break;
+			default:
+				break;
+			}			
 		}
 		else
 		{
@@ -112,6 +133,16 @@ bool UInventoryComponent::DropItem(int Index)
 	{
 		return false;
 	}
+
+	if (GrenadeIndex == Index)
+	{
+		GrenadeIndex = -1;		
+	}
+	else if (BulletIndex == Index)
+	{
+		BulletIndex = -1;
+	}
+
 
 	ItemList.RemoveAt(Index);
 	return true;
@@ -191,4 +222,103 @@ int UInventoryComponent::GetItemCount(int InventoryIndex)
 void UInventoryComponent::ClearItem()
 {
 	ItemList.Reset();
+}
+
+FItemDataTable& UInventoryComponent::GetItemData(int InventoryIndex)
+{
+	UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	return GI->GetItemData(ItemList[InventoryIndex].ItemIndex);
+}
+
+bool UInventoryComponent::IsExistLoadedBullet()
+{
+	return LoadedBullet <= 0 ? false : true;
+}
+
+bool UInventoryComponent::IsExistExtraBullet()
+{
+	return ExtraBullet <= 0 ? false : true;
+}
+
+void UInventoryComponent::ReloadComplete()
+{
+	//총알이 없는거 
+	if (!IsExistExtraBullet())
+	{
+		return;
+	}
+
+	//충전 되야 할 총알 수
+	int AddBullet = BulletPerMagazine - LoadedBullet;
+
+	//남은 총알이 충전 할 총알보다 작은 경우
+	if (ExtraBullet <= AddBullet)
+	{
+		LoadedBullet += ExtraBullet;
+		ExtraBullet = 0;
+	}
+	else
+	{
+		//남은 총알에서 충전 될 총알을 빼줌
+		ExtraBullet -= AddBullet;
+		LoadedBullet = BulletPerMagazine;
+	}
+}
+
+void UInventoryComponent::S2A_UseBullet_Implementation()
+{
+	if (LoadedBullet > 0)
+	{
+		LoadedBullet--;
+//		UE_LOG(LogClass, Warning, TEXT("Bullet %d %d"), LoadedBullet, ExtraBullet);
+		DecreaseItem(BulletIndex);
+
+		ABasicPC* BasicPC = Cast<ABasicPC>(GetOwner());
+		if (BasicPC && GetWorld()->IsClient())
+		{
+			BasicPC->UI_UpdateBullet(LoadedBullet, ExtraBullet);
+		}
+	}
+}
+
+void UInventoryComponent::AddExtraBullet(int AddExtraBullet)
+{
+	ExtraBullet += AddExtraBullet;
+}
+
+void UInventoryComponent::OnRep_Bullet()
+{
+	if (!GetWorld()->IsClient())
+	{
+		return;
+	}
+	
+	ABasicPC* BasicPC = Cast<ABasicPC>(GetOwner());
+	if (!BasicPC)
+	{
+		return;
+	}
+
+	BasicPC->UI_UpdateBullet(LoadedBullet, ExtraBullet);
+}
+
+bool UInventoryComponent::DecreaseItem(int InventoryIndex)
+{
+	if (InventoryIndex == -1 || InventoryIndex >= ItemList.Num())
+	{
+		return false;
+	}
+
+	if (ItemList[InventoryIndex].ItemCount == 0)
+	{
+		return false;
+	}
+
+	ItemList[InventoryIndex].ItemCount--;
+	if (ItemList[InventoryIndex].ItemCount == 0)
+	{
+		//사용 다한 아이템을 삭제
+		ItemList.RemoveAt(InventoryIndex);
+	}
+	return true;
 }

@@ -84,6 +84,7 @@ public:
 	void CheckItem();
 
 	void SetHPBar(float NewHP);
+	void UI_UpdateBullet(int Bullet, int ExtraBullet);
 
 	void ToggleInventory();
 	void DropItem(int InventoryIndex);

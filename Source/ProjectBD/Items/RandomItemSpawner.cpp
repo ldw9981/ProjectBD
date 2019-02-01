@@ -34,7 +34,7 @@ void ARandomItemSpawner::BeginPlay()
 		UBDGameInstance* GI = Cast<UBDGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 		for (auto it : Results)
 		{
-			int ItemIndex = FMath::RandRange(1, 6) * 10;
+			int ItemIndex = FMath::RandRange(1, 7) * 10;
 			FItemDataTable& ItemData = GI->GetItemData(ItemIndex);
 			AMasterItem* Item = SpawnMasterItem(ItemData.ItemIndex, ItemData.ItemCount);
 			Item->SetActorTransform(it->GetActorTransform());
