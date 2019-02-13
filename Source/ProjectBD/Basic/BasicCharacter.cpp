@@ -53,8 +53,7 @@ ABasicCharacter::ABasicCharacter()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	Weapon = CreateDefaultSubobject<UWeaponComponent>(TEXT("Weapon"));
-	Weapon->SetupAttachment(GetMesh(), TEXT("RHandWeapon"));
-
+	//Weapon->SetupAttachment(GetMesh(), TEXT("RifleRHandSocket"));
 
 
 	//앉을때 눈 높이 갑자기 이동 막기
@@ -74,6 +73,10 @@ ABasicCharacter::ABasicCharacter()
 void ABasicCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	Weapon->AttachToComponent(GetMesh(),
+		FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true),
+		TEXT("RifleRHandSocket") );
 
 	CurrentHP = MaxHP;
 
@@ -126,6 +129,17 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void ABasicCharacter::Reload()
 {
+	ABasicPC* BasicPC = Cast<ABasicPC>(GetController());
+	if (!BasicPC)
+	{
+		return;
+	}
+
+	if (!BasicPC->Inventory->IsExistExtraBullet())
+	{		
+		return;
+	}
+
 	C2S_Reload();
 }
 
@@ -304,9 +318,9 @@ void ABasicCharacter::Client_OnTimerFire()
 	UGameplayStatics::GetPlayerController(GetWorld(), 0)->DeprojectScreenPositionToWorld(SizeX / 2 , SizeY / 2 , CrosshairWorldPosition, CrosshairWorldDirection);
 
 	//광선 시작점과 끝 구하기
-	FVector TraceStart = CameraLocation;//Weapon->GetSocketLocation(TEXT("MuzzleFlash"));
+	FVector TraceStart = CameraLocation;//Weapon->GetSocketLocation(TEXT("MuzzleSocket"));
 	FVector TraceEnd = CameraLocation + (CrosshairWorldDirection * 900000.0f);
-	C2S_Fire(TraceStart, TraceEnd, Weapon->GetSocketLocation(TEXT("MuzzleFlash")), Weapon->GetSocketRotation(TEXT("MuzzleFlash")));
+	C2S_Fire(TraceStart, TraceEnd, Weapon->GetSocketLocation(TEXT("MuzzleSocket")), Weapon->GetSocketRotation(TEXT("MuzzleSocket")));
 	//UE_LOG(LogClass, Warning, TEXT("%d %f %s"), int, float, *FString);
 
 	//총구 방향 변경
@@ -529,7 +543,7 @@ void ABasicCharacter::C2S_Fire_Implementation(FVector TraceStart, FVector TraceE
 
 	BasicPC->Inventory->S2A_UseBullet();
 
-	S2A_FireEffect(TEXT("MuzzleFlash"));
+	S2A_FireEffect(TEXT("MuzzleSocket"));
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));

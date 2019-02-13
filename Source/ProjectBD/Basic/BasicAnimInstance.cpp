@@ -35,17 +35,19 @@ void UBasicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		bIsFire = Pawn->bIsFire;
 
-		//재장전
-		bIsReload = Pawn->bIsReload;
-		if (bIsReload)
+		//재장전		
+		if (!bIsReload && Pawn->bIsReload)
 		{
-			if (!Montage_IsPlaying(Pawn->ReloadAnimation))
-			{				
-				UE_LOG(LogClass, Warning, TEXT("Reload"));
-				Montage_Play(Pawn->ReloadAnimation);
-			}
+			bIsReload = Pawn->bIsReload;					
+			UE_LOG(LogClass, Warning, TEXT("Reload"));
+			Montage_Play(Pawn->ReloadAnimation);
+			FOnMontageEnded EndDelegate;
+			// Bind it
+			EndDelegate.BindUObject(this, &UBasicAnimInstance::OnEndMontage);
+			//Set it
+			Montage_SetEndDelegate(EndDelegate);
 		}
-
+		
 		//기울이기
 		bLeftLean = Pawn->bLeftLean;
 		bRightLean = Pawn->bRightLean;
@@ -84,6 +86,26 @@ void UBasicAnimInstance::AnimNotify_ReloadComplete(UAnimNotify* Notify)
 			
 		}
 		bIsReload = false; 
+		Pawn->bIsReload = false;
+	}
+}
+
+void UBasicAnimInstance::OnEndMontage(UAnimMontage * Montage, bool bInterrupted)
+{
+	UE_LOG(LogClass, Warning, TEXT("Complete"));
+	ABasicCharacter* Pawn = Cast<ABasicCharacter>(TryGetPawnOwner());
+	if (Pawn && Pawn->IsValidLowLevel())
+	{
+		if (GetWorld()->IsServer())
+		{
+			ABasicPC* BasicPC = Cast<ABasicPC>(Pawn->GetController());
+			if (BasicPC)
+			{
+				BasicPC->Inventory->ReloadComplete();
+			}
+
+		}
+		bIsReload = false;
 		Pawn->bIsReload = false;
 	}
 }
