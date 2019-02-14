@@ -125,6 +125,12 @@ void ABasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction(TEXT("RightLean"), IE_Pressed, this, &ABasicCharacter::StartRightLean);
 	PlayerInputComponent->BindAction(TEXT("Use"), IE_Pressed, this, &ABasicCharacter::InteractionClose);
 	PlayerInputComponent->BindAction(TEXT("ToggleInventory"), IE_Pressed, this, &ABasicCharacter::ToggleInventory);
+
+	PlayerInputComponent->BindAction(TEXT("EquipPrimary"), IE_Pressed, this, &ABasicCharacter::EquipPrimary);
+	PlayerInputComponent->BindAction(TEXT("EquipSecondary"), IE_Pressed, this, &ABasicCharacter::EquipSecondary);
+	PlayerInputComponent->BindAction(TEXT("EquipPistol"), IE_Pressed, this, &ABasicCharacter::EquipPistol);
+	PlayerInputComponent->BindAction(TEXT("EquipMelee"), IE_Pressed, this, &ABasicCharacter::EquipMelee);
+	PlayerInputComponent->BindAction(TEXT("EquipGrenade"), IE_Pressed, this, &ABasicCharacter::EquipGrenade);
 }
 
 void ABasicCharacter::Reload()
@@ -465,6 +471,26 @@ void ABasicCharacter::DoIronsight()
 	C2S_DoIronsight();
 }
 
+void ABasicCharacter::EquipPrimary()
+{
+}
+
+void ABasicCharacter::EquipSecondary()
+{
+}
+
+void ABasicCharacter::EquipPistol()
+{
+}
+
+void ABasicCharacter::EquipMelee()
+{
+}
+
+void ABasicCharacter::EquipGrenade()
+{
+}
+
 bool ABasicCharacter::C2S_DoIronsight_Validate()
 {
 	return true;
@@ -639,8 +665,8 @@ void ABasicCharacter::S2A_Die_Implementation()
 	// 메쉬에 대한 컬리전 끄기
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	FString DeadMontage = FString::Printf(TEXT("Death_%d"), FMath::RandRange(1, 3));
-	PlayAnimMontage(DeadAnimation, 1.0f, FName(*DeadMontage));
+	//FString DeadMontage = FString::Printf(TEXT("Death_%d"), FMath::RandRange(1, 3));
+	//PlayAnimMontage(DeadAnimation, 1.0f, FName(*DeadMontage));
 
 	if (ItemBox!=nullptr)
 	{

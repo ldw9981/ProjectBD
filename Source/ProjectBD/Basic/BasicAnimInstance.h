@@ -58,5 +58,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float CurrentAngle = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	bool bIsDead = false;
+
 	void OnEndMontage(UAnimMontage* Montage, bool bInterrupted);
 };

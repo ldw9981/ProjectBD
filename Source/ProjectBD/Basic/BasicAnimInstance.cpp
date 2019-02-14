@@ -34,7 +34,7 @@ void UBasicAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = Pawn->GetCharacterMovement()->IsFalling();
 
 		bIsFire = Pawn->bIsFire;
-
+		bIsDead = Pawn->IsDead();
 		//재장전		
 		if (!bIsReload && Pawn->bIsReload)
 		{

@@ -75,8 +75,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State", ReplicatedUsing = "HP_OnRep")
 	float MaxHP = 100.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	class UAnimMontage* DeadAnimation;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	//class UAnimMontage* DeadAnimation;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	class UAnimMontage* ReloadAnimation;
@@ -98,6 +98,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bullet")
 	TSubclassOf<class AActor> BulletTypeClass;
+
 protected:
 	class ARandomItemSpawner*	RandomItemSpawner = nullptr;
 protected:
@@ -118,6 +119,12 @@ public:
 	void UnSprint();
 	void DoCrouch();
 	void DoIronsight();
+	void EquipPrimary();
+	void EquipSecondary();
+	void EquipPistol();
+	void EquipMelee();
+	void EquipGrenade();
+
 
 	FRotator GetAimOffset() const;
 	UFUNCTION()
