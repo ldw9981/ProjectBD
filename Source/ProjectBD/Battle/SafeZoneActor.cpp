@@ -75,14 +75,14 @@ void ASafeZoneActor::Tick(float DeltaTime)
 			if (!bZoneMove)
 			{
 				float PrevRadius = CurrentRadius;
-				float NewRadius = CurrentRadius * 0.75f;
+				float NewRadius = CurrentRadius * 0.5f;
 				FVector NewCenter = GetRandomLocationInRadius(CurrentCenter, PrevRadius-NewRadius);
 
-				S2A_SetZoneMovePhaze(120, NewCenter, NewRadius);
+				S2A_SetZoneMovePhaze(60, NewCenter, NewRadius);
 			}
 			else
 			{
-				S2A_SetWaitPhaze(120);
+				S2A_SetWaitPhaze(60);
 			}
 		}
 	}
@@ -116,9 +116,14 @@ void ASafeZoneActor::PainOutside()
 		{
 			continue;
 		}
+
+
+		FVector ActorLocationXY = Character->GetActorLocation();
+		ActorLocationXY.Z = 0;
+		FVector ZoneLocationXY = GetActorLocation();
+		ZoneLocationXY.Z = 0;
 		
-		
-		if (FVector(Character->GetActorLocation() - GetActorLocation()).Size() <= CurrentRadius)
+		if (FVector(ActorLocationXY - ZoneLocationXY).Size() <= CurrentRadius)
 		{
 			continue;
 		}
