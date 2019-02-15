@@ -16,6 +16,9 @@ class PROJECTBD_API UBattleWidgetBase : public UUserWidget
 public:
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	float SafeZoneBarData;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	float HpBarData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
@@ -28,6 +31,9 @@ public:
 	FString AliveCountData;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	FString TextPhazeTime;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	class UScrollBox* KillingMessage;
 
 	virtual void NativeConstruct() override;
@@ -38,4 +44,5 @@ public:
 	void SetAliveCountText(int AliveCount);
 	void SetTextBullet(int Bullet);
 	void SetTextExtraBullet(int ExtraBullet);
+	void SetTextPhazeTime(float PhazeTime);
 };

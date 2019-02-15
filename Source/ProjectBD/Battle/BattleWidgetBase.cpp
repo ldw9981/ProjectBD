@@ -51,3 +51,10 @@ void UBattleWidgetBase::SetTextExtraBullet(int ExtraBullet)
 {
 	TextExtraBullet = FString::Printf(TEXT("%d"), ExtraBullet);
 }
+
+void UBattleWidgetBase::SetTextPhazeTime(float PhazeTime)
+{
+	int Min = (int)PhazeTime / 60;
+	int Sec = (int)PhazeTime % 60;
+	TextPhazeTime = FString::Printf(TEXT("%02d:%02d"), Min, Sec);
+}

@@ -21,6 +21,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Initial")
 	float InitialRadius = 10000;
 
+	float DifferenceRadius = 0.0f;
 	float Scale1Unit = 0.02;
 	float CurrentRadius = 0.0f;
 	float TargetRadius = 0.0f;

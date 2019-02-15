@@ -667,3 +667,29 @@ void ABasicPC::UI_UpdateBullet(int Bullet, int ExtraBullet)
 		BattleWidget->SetTextExtraBullet(ExtraBullet);
 	}
 }
+
+void ABasicPC::UI_SetSafeZoneProgress(float Progress)
+{
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
+	{
+		return;
+	}
+
+	if (BattleWidget)
+	{
+		BattleWidget->SafeZoneBarData = Progress;
+	}
+}
+
+void ABasicPC::UI_SetPhazeTime(float PhazeTime)
+{
+	if (UKismetSystemLibrary::IsServer(GetWorld()))
+	{
+		return;
+	}
+
+	if (BattleWidget)
+	{
+		BattleWidget->SetTextPhazeTime(PhazeTime);
+	}
+}

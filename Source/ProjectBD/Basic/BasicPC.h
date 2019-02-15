@@ -86,6 +86,8 @@ public:
 	void SetHPBar(float NewHP);
 	void UI_UpdateBullet(int Bullet, int ExtraBullet);
 
+	void UI_SetSafeZoneProgress(float Progress);
+
 	void ToggleInventory();
 	void DropItem(int InventoryIndex);
 	bool UseItem(int InventoryIndex);
@@ -108,4 +110,5 @@ public:
 	void DropInventoryByDeath();
 
 	void SetBattleWidgetAliveCountText(int AliveCount);
+	void UI_SetPhazeTime(float PhazeTime);
 };

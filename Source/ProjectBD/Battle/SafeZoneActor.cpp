@@ -57,13 +57,28 @@ void ASafeZoneActor::Tick(float DeltaTime)
 		return;
 	}
 
+	ABasicPC* PC = Cast<ABasicPC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	PhazeTime -= DeltaTime;
+	if (PC && PC->IsLocalPlayerController())
+	{	
+		PC->UI_SetPhazeTime(PhazeTime);
+	}
+
+	
 	if (bZoneMove)
 	{
 		CurrentRadius = FMath::FInterpConstantTo(CurrentRadius, TargetRadius, DeltaTime, InterpSpeedRadius);
 		CurrentCenter = FMath::VInterpConstantTo(CurrentCenter, TargetCenter, DeltaTime, InterpSpeedCenter);
 		SetRadius(CurrentRadius);
 		SetActorLocation(CurrentCenter);
+
+		// 이동중일때 갱신
+		
+		if (PC && PC->IsLocalPlayerController())
+		{
+			float Progress = 1 - ((CurrentRadius - TargetRadius)/ DifferenceRadius);
+			PC->UI_SetSafeZoneProgress(Progress);
+		}
 	}
 
 	if (PhazeTime <= 0.0f)
@@ -142,16 +157,25 @@ void ASafeZoneActor::S2A_SetZoneMovePhaze_Implementation(float NewPageTime, FVec
 	TargetRadius = NewTargetRadius;
 	TargetCenter = NewCenter;
 	
-	InterpSpeedRadius = (CurrentRadius - TargetRadius) / PhazeTime;		// 1초에 줄어야할 반지름 크기
+	DifferenceRadius = (CurrentRadius - TargetRadius);
+	InterpSpeedRadius = DifferenceRadius / PhazeTime;		// 1초에 줄어야할 반지름 크기
 	//UE_LOG(LogClass, Warning, TEXT(" %f, %f , %f"), CurrentRadius, TargetRadius, PhazeTime);
 	InterpSpeedCenter = FVector(TargetCenter - CurrentCenter).Size()/ PhazeTime;	//1초에 이동해야할 크기
 //	UE_LOG(LogClass, Warning, TEXT("InterpSpeedRadius %f,InterpSpeedCenter %f"), InterpSpeedRadius, InterpSpeedCenter);
+
+	
 }
 
 void ASafeZoneActor::S2A_SetWaitPhaze_Implementation(float NewPageTime)
 {
 	bZoneMove = false;
 	PhazeTime = NewPageTime;
+
+	ABasicPC* PC = Cast<ABasicPC>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PC && PC->IsLocalPlayerController())
+	{
+		PC->UI_SetSafeZoneProgress(0.0f);
+	}
 }
 
 FVector ASafeZoneActor::GetRandomLocationInRadius(const FVector & Origin,const float Radius)
