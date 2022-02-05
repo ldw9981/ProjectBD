@@ -193,7 +193,7 @@ public:
 	bool C2S_Fire_Validate(FVector TraceStart, FVector TraceEnd, FVector MuzzleLocation, FRotator MuzzleRotator);
 	void C2S_Fire_Implementation(FVector TraceStart, FVector TraceEnd, FVector MuzzleLocation, FRotator MuzzleRotator);
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Client, Reliable)
 	void S2A_FireEffect(FName InSocketName);
 	void S2A_FireEffect_Implementation(FName InSocketName);
 

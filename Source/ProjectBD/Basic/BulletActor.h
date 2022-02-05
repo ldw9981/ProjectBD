@@ -42,11 +42,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Client, Reliable)
 	void S2A_HitEffectBlood(FVector Point, FRotator Rotation);
 	void S2A_HitEffectBlood_Implementation(FVector Point, FRotator Rotation);
 
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(Client, Reliable)
 	void S2A_HitEffectBlock(FVector Point, FRotator Rotation);
 	void S2A_HitEffectBlock_Implementation(FVector Point, FRotator Rotation);
 

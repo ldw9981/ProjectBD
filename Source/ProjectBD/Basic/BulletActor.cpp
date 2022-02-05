@@ -70,7 +70,10 @@ void ABulletActor::S2A_HitEffectBlock_Implementation(FVector Point, FRotator Rot
 			Rotation,
 			10.0f
 		);
-		BulletDecalComponent->SetFadeScreenSize(0.0001f);
+		if (BulletDecalComponent)
+		{
+			BulletDecalComponent->SetFadeScreenSize(0.0001f);
+		}		
 	}
 
 	//HitEffect
