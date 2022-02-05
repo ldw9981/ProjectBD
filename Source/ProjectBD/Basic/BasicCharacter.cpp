@@ -10,14 +10,14 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
-#include "UnrealNetwork.h"
+#include "Net/UnrealNetwork.h"
 #include "Engine/GameEngine.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/StaticMeshActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Basic/MyCameraShake.h"
+//#include "Basic/MyCameraShake.h"
 #include "Basic/BulletDamageType.h"
 #include "Basic/BasicPC.h"
 #include "Basic/BulletActor.h"
@@ -336,7 +336,7 @@ void ABasicCharacter::Client_OnTimerFire()
 
 	UGameplayStatics::GetPlayerController(GetWorld(), 0)->SetControlRotation(PlayerRotation);
 	//카메라 흔들기
-	UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->PlayCameraShake(UMyCameraShake::StaticClass());
+	//UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->PlayCameraShake(UMyCameraShake::StaticClass());
 
 	//월드 카메라 흔들기
 	//UGameplayStatics::PlayWorldCameraShake(GetWorld(),

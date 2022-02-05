@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "BattleGS.h"
-#include "UnrealNetwork.h"
+#include "Net/UnrealNetwork.h"
 #include "Battle/BattleWidgetBase.h"
 #include "Basic/BasicPC.h"
 #include "Kismet/GameplayStatics.h"

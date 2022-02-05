@@ -3,7 +3,7 @@
 #include "Zombie.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Zombie/ZombieAIController.h"
-#include "ConstructorHelpers.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Perception/PawnSensingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"

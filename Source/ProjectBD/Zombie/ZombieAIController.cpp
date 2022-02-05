@@ -12,9 +12,10 @@ AZombieAIController::AZombieAIController()
 	BBComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BBComponent"));
 }
 
-void AZombieAIController::Possess(APawn * InPawn)
+
+void AZombieAIController::OnPossess(APawn* InPawn)
 {
-	Super::Possess(InPawn);
+	Super::OnPossess(InPawn);
 
 	AZombie* Zombie = Cast<AZombie>(InPawn);
 	if (Zombie)
@@ -29,7 +30,7 @@ void AZombieAIController::Possess(APawn * InPawn)
 	UE_LOG(LogClass, Warning, TEXT("Possess"));
 }
 
-void AZombieAIController::UnPossess()
+void AZombieAIController::OnUnPossess()
 {
-	Super::UnPossess();
+	Super::OnUnPossess();
 }

@@ -1,7 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "LobbyGS.h"
-#include "UnrealNetwork.h"
+#include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "Lobby/LobbyPC.h"
 #include "Lobby/LobbyWidgetBase.h"

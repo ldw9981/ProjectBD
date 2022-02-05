@@ -8,7 +8,7 @@
 #include "MasterItem.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "BDGameInstance.h"
-#include "UnrealNetwork.h"
+#include "Net/UnrealNetwork.h"
 #include "Components/StaticMeshComponent.h"
 
 // Sets default values

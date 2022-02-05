@@ -17,8 +17,8 @@ public:
 	int a;
 	AZombieAIController();
 
-	virtual void Possess(APawn* InPawn) override;
-	virtual void UnPossess() override;
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")

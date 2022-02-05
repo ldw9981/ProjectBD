@@ -4,7 +4,7 @@
 #include "Basic/BasicCharacter.h"
 #include "Basic/BasicPC.h"
 #include "Curves/CurveFloat.h"
-#include "ConstructorHelpers.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Components/TimelineComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFrameWork/SpringArmComponent.h"

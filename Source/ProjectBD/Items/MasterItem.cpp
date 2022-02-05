@@ -7,7 +7,7 @@
 #include "Basic/BasicCharacter.h"
 #include "Basic/BasicPC.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "UnrealNetwork.h"
+#include "Net/UnrealNetwork.h"
 #include "BDGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMesh.h"

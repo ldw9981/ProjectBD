@@ -8,7 +8,7 @@ public class ProjectBDTarget : TargetRules
 	public ProjectBDTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
-
-		ExtraModuleNames.AddRange( new string[] { "ProjectBD" } );
+        DefaultBuildSettings = BuildSettingsVersion.V2;
+        ExtraModuleNames.AddRange( new string[] { "ProjectBD" } );
 	}
 }

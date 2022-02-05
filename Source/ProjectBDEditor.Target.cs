@@ -8,7 +8,7 @@ public class ProjectBDEditorTarget : TargetRules
 	public ProjectBDEditorTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
-
-		ExtraModuleNames.AddRange( new string[] { "ProjectBD" } );
+        DefaultBuildSettings = BuildSettingsVersion.V2;
+        ExtraModuleNames.AddRange( new string[] { "ProjectBD" } );
 	}
 }

@@ -4,7 +4,7 @@
 #include "BDGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
-#include "UnrealNetwork.h"
+#include "Net/UnrealNetwork.h"
 #include "Basic/BasicCharacter.h"
 #include "Basic/BasicPC.h"
 
@@ -14,7 +14,7 @@ UInventoryComponent::UInventoryComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	bReplicates = true;
+	SetIsReplicated(true);
 	// ...
 }
 
